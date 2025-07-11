@@ -2,12 +2,15 @@ from datetime import datetime
 from typing import Optional
 from uuid import UUID
 from pydantic import BaseModel, ConfigDict
-from src.entities.todo import Priority
+from src.entities.todo import Status
 
 class TodoBase(BaseModel):
     description: str
     due_date: Optional[datetime] | None
-    priority: Priority = Priority.Medium
+    status: Status = Status.ToDo
+    is_important: bool = True
+    is_urgent: bool = False
+    pomodoro_count: int | None
 
 class TodoCreate(TodoBase):
     pass

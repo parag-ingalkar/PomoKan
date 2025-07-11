@@ -32,6 +32,10 @@ def update_todo(db: DbSession, todo_id: UUID, todo_update: models.TodoCreate, cu
 def complete_todo(db: DbSession, todo_id: UUID, current_user: CurrentUser):
     return service.complete_todo(current_user, db, todo_id)
 
+@router.put("/{todo_id}/increment-pomodoro", response_model=models.TodoResponse)
+def increment_pomodoro_count(db: DbSession, todo_id: UUID, current_user: CurrentUser):
+    return service.increment_pomodoro_count(current_user, db, todo_id)
+
 @router.delete("/{todo_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_todo(db: DbSession, todo_id: UUID, current_user: CurrentUser):
     service.delete_todo(current_user, db, todo_id)

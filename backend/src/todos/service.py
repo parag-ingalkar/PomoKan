@@ -53,6 +53,17 @@ def complete_todo(current_user: TokenData, db: Session, todo_id: UUID) -> Todo:
     logging.info(f"Todo {todo_id} marked as completed by user {current_user.get_uuid()}")
     return todo
 
+def increment_pomodoro_count(current_user: TokenData, db: Session, todo_id: UUID) -> Todo:
+    todo = get_todo_by_id(current_user, todo_id, db)
+    if todo.is_completed:
+        logging.debug(f"Todo {todo_id} is already completed")
+        return todo
+    todo.pomodoro_count += 1
+    db.commit()
+    db.refresh(todo)
+    logging.info(f"Todo {todo_id} incremented pomodoro count by user {current_user.get_uuid()}")
+    return todo
+
 def delete_todo(current_user: TokenData, db: Session, todo_id: UUID) -> None:
     todo = get_todo_by_id(current_user, todo_id, db)
     db.delete(todo)
