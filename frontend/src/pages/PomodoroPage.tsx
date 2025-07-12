@@ -1,16 +1,8 @@
 // src/pages/PomodoroPage.tsx
 import { useEffect, useRef, useState } from "react";
 import api from "../api/axios";
+import type { Todo } from "../utils/data-tasks";
 
-
-interface Todo {
-    id: string;
-    description: string;
-    due_date: string | null;
-    is_completed: boolean;
-    completed_at: string | null;
-    priority: number;
-}
 
 
 
@@ -49,7 +41,9 @@ const [timeLeft, setTimeLeft] = useState(modes.pomodoro);
     setLoading(true);
     try {
       const res = await api.get('/todos/');
-      setTodos(res.data);
+      const in_progress_todos = res.data.filter((t: Todo) => t.status=='in progress')
+      console.log(in_progress_todos);
+      setTodos(in_progress_todos);
     } catch {
       setError('Failed to fetch todos');
     } finally {

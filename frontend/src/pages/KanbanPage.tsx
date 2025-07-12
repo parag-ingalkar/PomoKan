@@ -26,11 +26,6 @@ const KanbanPage: React.FC = () => {
   };
 
 
-  // const fetchTodos = async () => {
-  //   //   const res = await api.get('/todos/');
-  //     setTasks(tasksdata);
-  // };
-
   useEffect(() => { fetchTodos(); }, []);
 
   const columns = statuses.map((status) => {
