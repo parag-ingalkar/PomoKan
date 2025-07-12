@@ -6,9 +6,9 @@ import enum
 from ..database.core import Base 
 
 class Status(enum.Enum):
-    ToDo = 0
-    InProgress = 1
-    Completed = 2
+    to_do = "to do"
+    in_progress = "in progress"
+    completed = "completed"
 
 class Todo(Base):
     __tablename__ = 'todos'
@@ -22,8 +22,8 @@ class Todo(Base):
     is_urgent = Column(Boolean, nullable=False, default=False)
     created_at = Column(DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
     completed_at = Column(DateTime, nullable=True)
-    status = Column(Enum(Status), nullable=False, default=Status.ToDo)
-    pomodoro_count = Column(Integer, nullable=True)
+    status = Column(Enum(Status), nullable=False, default=Status.to_do)
+    pomodoro_count = Column(Integer, nullable=False, default=0)
 
 
     def __repr__(self):

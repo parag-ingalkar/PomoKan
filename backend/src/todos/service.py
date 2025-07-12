@@ -47,6 +47,7 @@ def complete_todo(current_user: TokenData, db: Session, todo_id: UUID) -> Todo:
         logging.debug(f"Todo {todo_id} is already completed")
         return todo
     todo.is_completed = True
+    todo.status = 'completed'
     todo.completed_at = datetime.now(timezone.utc)
     db.commit()
     db.refresh(todo)
