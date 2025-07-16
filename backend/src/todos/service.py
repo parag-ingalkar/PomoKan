@@ -70,3 +70,10 @@ def delete_todo(current_user: TokenData, db: Session, todo_id: UUID) -> None:
     db.delete(todo)
     db.commit()
     logging.info(f"Todo {todo_id} deleted by user {current_user.get_uuid()}")
+
+def patch_todo(current_user: TokenData, db: Session, todo_id: UUID, todo_update: models.TodoUpdate) -> Todo:
+    todo_data = todo_update.model_dump(exclude_unset=True)
+    db.query(Todo).filter(Todo.id == todo_id).filter(Todo.user_id == current_user.get_uuid()).update(todo_data)
+    db.commit()
+    logging.info(f"Successfully patched todo {todo_id} for user {current_user.get_uuid()}")
+    return get_todo_by_id(current_user, todo_id, db)

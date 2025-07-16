@@ -21,3 +21,10 @@ class TodoResponse(TodoBase):
     completed_at: Optional[datetime] | None
 
     model_config = ConfigDict(from_attributes=True)
+
+class TodoUpdate(BaseModel):
+    description: Optional[str] = None
+    due_date: Optional[datetime] = None
+    status: Optional[str] = None
+    is_important: Optional[bool] = None
+    is_urgent: Optional[bool] = None

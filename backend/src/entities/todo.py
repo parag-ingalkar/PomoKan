@@ -6,8 +6,8 @@ import enum
 from ..database.core import Base 
 
 class Status(enum.Enum):
-    to_do = "to do"
-    in_progress = "in progress"
+    to_do = "to_do"
+    in_progress = "in_progress"
     completed = "completed"
 
 class Todo(Base):

@@ -1,33 +1,32 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
-import LoginPage from './pages/LoginPage'
-import RegisterPage from './pages/RegisterPage'
-import TodosPage from './pages/TodosPage'
-import ProfilePage from './pages/ProfilePage'
-import Layout from './components/Layout'
-import RequireAuth from './components/RequireAuth';
-import PomodoroPage from './pages/PomodoroPage'
-import SettingsPage from './pages/SettingsPage'
-import KanbanPage from './pages/KanbanPage'
-import EisenhowerMatrixPage from './pages/EisenhoverMatrixPage'
+import {
+	BrowserRouter as Router,
+	Routes,
+	Route,
+	Navigate,
+} from "react-router-dom";
+import { ThemeProvider } from "./components/theme-provider";
+import RequireAuth from "./components/RequireAuth";
+import HeroPage from "./pages/HeroPage";
+// import DashboardPage from "./pages/DashboardPage";
+import { DashboardPage } from "./pages/Dash";
+import NavBar from "./components/NavBar";
 
 function App() {
-  return (
-    <Router>
-      <Routes>
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route element={<RequireAuth><Layout /></RequireAuth>}>
-          <Route path="/todos" element={<TodosPage />} />
-          <Route path="/pomodoro" element={<PomodoroPage />} />
-          <Route path="/kanban" element={<KanbanPage />} />
-          <Route path="/eisenhover-matrix" element={<EisenhowerMatrixPage />} />
-          <Route path="/settings" element={<SettingsPage />} />
-          <Route path="/profile" element={<ProfilePage />} />
-        </Route>
-        <Route path="*" element={<Navigate to="/login" />} />
-      </Routes>
-    </Router>
-  )
+	return (
+		<ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+			<Router>
+				<Routes>
+					<Route path="/" element={<HeroPage />} />
+					<Route element={<RequireAuth />}>
+						<Route element={<NavBar />}>
+							<Route path="/dashboard" element={<DashboardPage />} />
+						</Route>
+					</Route>
+					<Route path="*" element={<Navigate to="/hero" />} />
+				</Routes>
+			</Router>
+		</ThemeProvider>
+	);
 }
 
-export default App
+export default App;

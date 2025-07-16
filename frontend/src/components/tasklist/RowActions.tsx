@@ -1,0 +1,97 @@
+// File: src/components/tasks/RowActions.tsx
+
+import { type Row } from "@tanstack/react-table";
+import { type Todo } from "@/utils/type-todo";
+import {
+	DropdownMenu,
+	DropdownMenuTrigger,
+	DropdownMenuContent,
+	DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { EllipsisIcon } from "lucide-react";
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+} from "../ui/alert-dialog";
+import { useState } from "react";
+import { deleteTodo } from "@/api/todoApi";
+import { AddTaskDialog } from "./AddTaskDialog";
+
+export function RowActions({
+	row,
+	onDelete,
+	onUpdate,
+}: {
+	row: Row<Todo>;
+	onDelete: (id: string) => void;
+	onUpdate?: (updatedTodo: Todo) => void;
+}) {
+	const [showDialog, setShowDialog] = useState(false);
+
+	const [editOpen, setEditOpen] = useState(false);
+
+	const handleEdit = () => {
+		setEditOpen(true);
+	};
+
+	const handleSave = (updated: Todo) => {
+		onUpdate?.(updated);
+		setEditOpen(false);
+	};
+
+	const handleDelete = () => {
+		deleteTodo(row.original.id);
+		onDelete(row.original.id);
+		setShowDialog(false);
+	};
+
+	return (
+		<>
+			<DropdownMenu>
+				<DropdownMenuTrigger asChild>
+					<Button size="icon" variant="ghost" className="shadow-none">
+						<EllipsisIcon size={16} aria-hidden="true" />
+					</Button>
+				</DropdownMenuTrigger>
+				<DropdownMenuContent align="end">
+					<DropdownMenuItem onClick={handleEdit}>Edit</DropdownMenuItem>
+					<DropdownMenuItem
+						className="text-destructive"
+						onClick={() => setShowDialog(true)}
+					>
+						Delete
+					</DropdownMenuItem>
+				</DropdownMenuContent>
+			</DropdownMenu>
+
+			<AddTaskDialog
+				visible={editOpen}
+				onClose={() => setEditOpen(false)}
+				todo={row.original}
+				onSubmit={handleSave}
+			/>
+
+			<AlertDialog open={showDialog} onOpenChange={setShowDialog}>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>Are you sure?</AlertDialogTitle>
+						<AlertDialogDescription>
+							This will permanently delete the task.
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogCancel>Cancel</AlertDialogCancel>
+						<AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
+		</>
+	);
+}
