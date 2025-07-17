@@ -1,48 +1,46 @@
-import { useState } from "react";
-import { Settings2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import {
-	Popover,
-	PopoverTrigger,
-	PopoverContent,
-} from "@/components/ui/popover";
+	Select,
+	SelectContent,
+	SelectGroup,
+	SelectItem,
+	SelectLabel,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 
-type Mode = "pomodoro" | "short_break" | "long_break";
-
-export function TimerModePopover({
-	onSelectMode,
-}: {
-	onSelectMode: (mode: Mode) => void;
-}) {
-	const [open, setOpen] = useState(false);
-
-	const handleSelect = (mode: Mode) => {
-		onSelectMode(mode);
-		setOpen(false); // Close popover
-	};
-
+export const TimerModeCollapsed = () => {
 	return (
-		<Popover open={open} onOpenChange={setOpen}>
-			<PopoverTrigger asChild>
-				<button
-					className="p-2 rounded-full hover:bg-muted transition-colors"
-					onClick={() => setOpen(!open)}
-				>
-					<Settings2 size={30} />
-				</button>
-			</PopoverTrigger>
-			<PopoverContent className="w-48 p-2 space-y-2">
-				{(["pomodoro", "short_break", "long_break"] as Mode[]).map((label) => (
-					<Button
-						key={label}
-						variant="ghost"
-						className="w-full justify-start capitalize"
-						onClick={() => handleSelect(label)}
-					>
-						{label.replace("_", " ")}
-					</Button>
-				))}
-			</PopoverContent>
-		</Popover>
+		<Select defaultValue="pomodoro">
+			<SelectTrigger className="w-[180px]">
+				<SelectValue placeholder="Select Mode" />
+			</SelectTrigger>
+			<SelectContent>
+				<SelectGroup>
+					<SelectLabel>Modes</SelectLabel>
+					<SelectItem value="pomodoro">Pomodoro</SelectItem>
+					<SelectItem value="short">Short Break</SelectItem>
+					<SelectItem value="long">Long Break</SelectItem>
+				</SelectGroup>
+			</SelectContent>
+		</Select>
 	);
-}
+};
+
+export const TimerModeExpanded = () => {
+	return (
+		<Tabs defaultValue="pomodoro">
+			<TabsList className="bg-transparent flex gap-2 ">
+				<TabsTrigger value="pomodoro" className="p-4 text-base rounded-md ">
+					Pomodoro
+				</TabsTrigger>
+				<TabsTrigger value="short" className="p-4 text-base rounded-md ">
+					Short Break
+				</TabsTrigger>
+				<TabsTrigger value="long" className="p-4 text-base rounded-md ">
+					Long Break
+				</TabsTrigger>
+			</TabsList>
+		</Tabs>
+	);
+};

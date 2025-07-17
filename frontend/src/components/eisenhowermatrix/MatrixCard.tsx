@@ -1,4 +1,5 @@
-import type { AddCardProps, CardProps, Todo } from "@/utils/type-kanban";
+import type { AddCardProps, CardProps } from "@/utils/type-matrix";
+import type { Todo } from "@/utils/type-todo";
 import { motion } from "framer-motion";
 import { useState, type FormEvent } from "react";
 import { Plus } from "lucide-react";
@@ -43,7 +44,14 @@ export const Card = ({
 	);
 };
 
-export const AddCard = ({ quadrant, setCards }: AddCardProps) => {
+const priorityValues = {
+	do: { is_important: true, is_urgent: true },
+	schedule: { is_important: true, is_urgent: false },
+	delegate: { is_important: false, is_urgent: true },
+	delete: { is_important: false, is_urgent: false },
+};
+
+export const AddCard = ({ area, setCards }: AddCardProps) => {
 	const [text, setText] = useState("");
 	const [adding, setAdding] = useState(false);
 
@@ -56,8 +64,8 @@ export const AddCard = ({ quadrant, setCards }: AddCardProps) => {
 			description: text.trim(),
 			due_date: null,
 			status: "to_do",
-			is_important: true,
-			is_urgent: false,
+			is_important: priorityValues[area].is_important,
+			is_urgent: priorityValues[area].is_urgent,
 			is_completed: false,
 			completed_at: null,
 			pomodoro_count: 0,

@@ -1,5 +1,5 @@
 import { type Dispatch, type SetStateAction } from "react";
-import type { Status, Todo } from "./type-todo";
+import type { Todo } from "./type-todo";
 
 export type QuadrantType = "do" | "schedule" | "delegate" | "delete";
 
@@ -16,7 +16,7 @@ export type CardProps = Todo & {
 };
 
 export type AddCardProps = {
-	column: Status;
+	area: QuadrantType;
 	setCards: Dispatch<SetStateAction<Todo[]>>;
 };
 

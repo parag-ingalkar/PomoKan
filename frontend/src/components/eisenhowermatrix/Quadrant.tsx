@@ -179,7 +179,7 @@ export const Quadrant = ({
 					return <Card key={c.id} {...c} handleDragStart={handleDragStart} />;
 				})}
 				<DropIndicator beforeId={null} area={quadrant} />
-				<AddCard quadrant={quadrant} setCards={setCards} />
+				<AddCard area={quadrant} setCards={setCards} />
 			</div>
 		</div>
 	);

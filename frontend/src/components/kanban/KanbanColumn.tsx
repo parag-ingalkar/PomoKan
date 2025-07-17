@@ -1,6 +1,6 @@
 import { type Todo } from "@/utils/type-todo";
 import type { ColumnProps, DropIndicatorProps } from "@/utils/type-kanban";
-import { useState, type DragEvent } from "react";
+import { useEffect, useRef, useState, type DragEvent } from "react";
 import { AddCard, Card } from "./KanbanCard";
 import api from "@/api/axios";
 
@@ -127,27 +127,31 @@ export const Column = ({
 	const filteredCards = cards.filter((c) => c.status === column);
 
 	return (
-		<div className="w-56 shrink-0">
-			<div className="mb-3 flex items-center gap-3">
-				<h3 className={`font-medium ${headingColor}`}>{title}</h3>
-				<span className="rounded text-sm text-neutral-400">
-					{filteredCards.length}
-				</span>
+		<div className="relative">
+			<div className="w-56 shrink-0 h-full  flex flex-col ">
+				<div className="mb-3 flex items-center gap-3">
+					<h3 className={`font-medium ${headingColor}`}>{title}</h3>
+					<span className="rounded text-sm text-neutral-400">
+						{filteredCards.length}
+					</span>
+				</div>
+				<div
+					onDrop={handleDragEnd}
+					onDragOver={handleDragOver}
+					onDragLeave={handleDragLeave}
+					className={`overflow-y-auto no-scrollbar w-full transition-colors snap-y pb-40 ${
+						active ? "bg-neutral-800/50" : "bg-neutral-800/0"
+					}`}
+				>
+					{filteredCards.map((c) => {
+						return <Card key={c.id} {...c} handleDragStart={handleDragStart} />;
+					})}
+					<DropIndicator beforeId={null} area={column} />
+
+					<AddCard column={column} setCards={setCards} />
+				</div>
 			</div>
-			<div
-				onDrop={handleDragEnd}
-				onDragOver={handleDragOver}
-				onDragLeave={handleDragLeave}
-				className={`h-full w-full transition-colors ${
-					active ? "bg-neutral-800/50" : "bg-neutral-800/0"
-				}`}
-			>
-				{filteredCards.map((c) => {
-					return <Card key={c.id} {...c} handleDragStart={handleDragStart} />;
-				})}
-				<DropIndicator beforeId={null} area={column} />
-				<AddCard column={column} setCards={setCards} />
-			</div>
+			<div className="pointer-events-none absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-background to-transparent" />
 		</div>
 	);
 };
