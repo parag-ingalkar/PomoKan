@@ -5,6 +5,8 @@ import { useState, type FormEvent } from "react";
 import { Plus } from "lucide-react";
 import { DropIndicator } from "./Quadrant";
 import { useTodosStore } from "@/store/todosStore";
+import { usePomodoroStore } from "@/store/pomodoroStore";
+import type { PomodoroState } from "@/store/pomodoroStore";
 
 export const Card = ({
 	description,
@@ -15,6 +17,14 @@ export const Card = ({
 	pomodoro_count,
 	handleDragStart,
 }: CardProps) => {
+	const selectedTask = usePomodoroStore((s: PomodoroState) => s.selectedTask);
+	const setSelectedTask = usePomodoroStore(
+		(s: PomodoroState) => s.setSelectedTask
+	);
+	const clearSelectedTask = usePomodoroStore(
+		(s: PomodoroState) => s.clearSelectedTask
+	);
+	const isSelected = selectedTask && selectedTask.id === id;
 	const statusColor = {
 		to_do: "bg-yellow-400/90",
 		in_progress: "bg-blue-400/90",
@@ -30,7 +40,24 @@ export const Card = ({
 				layoutId={id}
 				draggable="true"
 				onDragStart={(e) => handleDragStart(e, { description, id, status })}
-				className="relative overflow-hidden flex cursor-grab rounded-sm border border-accent-foreground/20 bg-accent/50 active:cursor-grabbing"
+				onClick={() => {
+					isSelected
+						? clearSelectedTask()
+						: setSelectedTask({
+								description,
+								id,
+								status,
+								is_important,
+								is_urgent,
+								pomodoro_count,
+								due_date: null,
+								is_completed: false,
+								completed_at: null,
+						  });
+				}}
+				className={`relative overflow-hidden flex cursor-pointer rounded-sm border border-accent-foreground/20 bg-accent/50 active:cursor-grabbing transition-colors ${
+					isSelected ? " bg-primary/20" : ""
+				}`}
 			>
 				<div className={`w-1  ${accentColor}`}></div>
 				<div className="px-3 py-2 flex-1">
@@ -50,7 +77,7 @@ const priorityValues = {
 	delete: { is_important: false, is_urgent: false },
 };
 
-export const AddCard = ({ area }: Omit<AddCardProps, 'setCards'>) => {
+export const AddCard = ({ area }: Omit<AddCardProps, "setCards">) => {
 	const [text, setText] = useState("");
 	const [adding, setAdding] = useState(false);
 	const addTodo = useTodosStore((s) => s.addTodo);
@@ -85,7 +112,7 @@ export const AddCard = ({ area }: Omit<AddCardProps, 'setCards'>) => {
 			{adding ? (
 				<motion.form layout onSubmit={handleSubmit}>
 					<input
-					type="text"
+						type="text"
 						value={text}
 						onChange={(e) => setText(e.target.value)}
 						autoFocus

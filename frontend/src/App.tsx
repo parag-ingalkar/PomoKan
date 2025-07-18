@@ -8,6 +8,7 @@ import { ThemeProvider } from "./components/theme-provider";
 import RequireAuth from "./components/RequireAuth";
 import HeroPage from "./pages/HeroPage";
 import { DashboardPage } from "./pages/Dash";
+import SettingsPage from "./pages/SettingsPage";
 import NavBar from "./components/NavBar";
 
 function App() {
@@ -19,6 +20,7 @@ function App() {
 					<Route element={<RequireAuth />}>
 						<Route element={<NavBar />}>
 							<Route path="/dashboard" element={<DashboardPage />} />
+							<Route path="/settings" element={<SettingsPage />} />
 						</Route>
 					</Route>
 					<Route path="*" element={<Navigate to="/hero" />} />

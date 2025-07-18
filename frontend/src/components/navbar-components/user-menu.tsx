@@ -1,4 +1,5 @@
 import { LogOutIcon, UserPenIcon, Settings, LogOut } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -20,6 +21,7 @@ interface UserMenuProps {
 
 export default function UserMenu({ user }: UserMenuProps) {
 	const { logout } = useAuth();
+	const navigate = useNavigate();
 	const user_fallback = `${user?.first_name[0]}${user?.last_name[0]}`;
 	const user_fullname = `${user?.first_name} ${user?.last_name}`;
 	const user_email = `${user?.email}`;
@@ -45,7 +47,7 @@ export default function UserMenu({ user }: UserMenuProps) {
 				</DropdownMenuLabel>
 				<DropdownMenuSeparator />
 				<DropdownMenuGroup>
-					<DropdownMenuItem>
+					<DropdownMenuItem onClick={() => navigate("/settings")}>
 						<Settings size={16} className="opacity-60" aria-hidden="true" />
 						<span>Settings</span>
 					</DropdownMenuItem>

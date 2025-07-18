@@ -1,24 +1,23 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, ChevronUp, Pause, Play, RotateCcw } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { TimerModeCollapsed } from "./TimerModePopover";
 import { SelectModeTabs } from "./SelectModeTabs";
 import { Vortex } from "../ui/vortex";
 import { usePomodoroStore } from "@/store/pomodoroStore";
+import { useSettingsStore } from "@/store/settingsStore";
 import api from "@/api/axios";
 import type { Todo } from "@/utils/type-todo";
 import { useTodosStore } from "@/store/todosStore";
 
 type Mode = "pomodoro" | "short-break" | "long-break";
 
-const MODE_TIMES: Record<Mode, number> = {
-	pomodoro: 6,
-	"short-break": 2,
-	"long-break": 4,
-};
+// MODE_TIMES will be created dynamically using settings
 
 export function Pomodoro() {
 	const [expanded, setExpanded] = useState(false);
+	const audioRef = useRef<HTMLAudioElement>(null);
+	const { selectedAudio, pomodoroDuration, shortBreakDuration, longBreakDuration } = useSettingsStore();
 	const {
 		selectedTask,
 		clearSelectedTask,
@@ -27,7 +26,16 @@ export function Pomodoro() {
 		setIsRunning,
 		mode,
 		setMode,
+		incrementPomodoro,
 	} = usePomodoroStore();
+	
+	// Create MODE_TIMES dynamically using settings
+	const MODE_TIMES: Record<Mode, number> = {
+		pomodoro: pomodoroDuration * 60, // Convert minutes to seconds
+		"short-break": shortBreakDuration * 60,
+		"long-break": longBreakDuration * 60,
+	};
+	
 	const [timeLeft, setTimeLeft] = useState(MODE_TIMES[mode as Mode]);
 	const [collapsedHeight, setCollapsedHeight] = useState(0);
 	const [pomodoroCount, setPomodoroCount] = useState(0); // Track completed pomodoros
@@ -45,31 +53,34 @@ export function Pomodoro() {
 		return () => window.removeEventListener("resize", updateHeights);
 	}, []);
 
-	// Update timeLeft when mode changes
+	// Update timeLeft when mode changes or durations change
 	useEffect(() => {
 		setTimeLeft(MODE_TIMES[mode as Mode]);
 		setIsRunning(false);
-	}, [mode, setIsRunning]);
+	}, [mode, setIsRunning, pomodoroDuration, shortBreakDuration, longBreakDuration]);
 
 	// Timer countdown effect
 	useEffect(() => {
 		if (!isRunning) return;
 
 		if (timeLeft === 0) {
+			// Play audio when timer hits 0
+			if (audioRef.current) {
+				audioRef.current.play().catch((error) => {
+					console.log("Audio playback failed:", error);
+				});
+			}
+			
 			setIsRunning(false);
 			if (mode === "pomodoro") {
 				// Only increment pomodoro count if mode is 'pomodoro'
 				if (selectedTask) {
-					api
-						.put(`/todos/${selectedTask.id}/increment-pomodoro`)
-						.then((res) => {
-							if (res.data) {
-								setLastUpdatedTask(res.data);
-								updateTodo(res.data);
+					incrementPomodoro(selectedTask.id)
+						.then((updated: Todo | null) => {
+							if (updated) {
+								setLastUpdatedTask(updated);
+								updateTodo(updated);
 							}
-						})
-						.catch(() => {
-							console.warn("Failed to increment pomodoro count");
 						});
 				}
 				// Switch to short-break or long-break after pomodoro
@@ -162,6 +173,9 @@ export function Pomodoro() {
 			transition={{ duration: 0.4, ease: "easeInOut" }}
 			className="fixed bottom-0 left-0 w-full bg-background border-t border-border shadow-lg overflow-hidden z-50"
 		>
+			{/* Audio element for timer completion sound */}
+			<audio ref={audioRef} src={`/audio/${selectedAudio}.mp3`} preload="auto" />
+			
 			<div className="h-full w-full ">
 				<AnimatePresence mode="wait">
 					{expanded ? (

@@ -1,5 +1,6 @@
-import { create, type SetState } from "zustand";
+import { create } from "zustand";
 import type { Todo } from "@/utils/type-todo";
+import { incrementPomodoro as incrementPomodoroApi } from "@/api/todoApi";
 
 export interface PomodoroState {
   selectedTask: Todo | null;
@@ -11,9 +12,10 @@ export interface PomodoroState {
   setIsRunning: (running: boolean) => void;
   mode: "pomodoro" | "short-break" | "long-break";
   setMode: (mode: "pomodoro" | "short-break" | "long-break") => void;
+  incrementPomodoro: (id: string) => Promise<Todo | null>;
 }
 
-export const usePomodoroStore = create<PomodoroState>((set: SetState<PomodoroState>) => ({
+export const usePomodoroStore = create<PomodoroState>((set, get) => ({
   selectedTask: null,
   setSelectedTask: (task: Todo) => set({ selectedTask: task }),
   clearSelectedTask: () => set({ selectedTask: null }),
@@ -23,4 +25,14 @@ export const usePomodoroStore = create<PomodoroState>((set: SetState<PomodoroSta
   setIsRunning: (running: boolean) => set({ isRunning: running }),
   mode: "pomodoro",
   setMode: (mode: "pomodoro" | "short-break" | "long-break") => set({ mode }),
+  incrementPomodoro: async (id: string) => {
+    try {
+      const updatedTodo = await incrementPomodoroApi(id);
+      set({ lastUpdatedTask: updatedTodo });
+      return updatedTodo;
+    } catch (err) {
+      console.warn("Failed to increment pomodoro count", err);
+      return null;
+    }
+  },
 })); 

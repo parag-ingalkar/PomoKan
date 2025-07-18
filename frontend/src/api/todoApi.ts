@@ -37,3 +37,9 @@ export const deleteMultipleTodos = async (todoIds: string[]): Promise<void> => {
     data: { todo_ids: todoIds }
   });
 };
+
+// Increment pomodoro count for a todo
+export const incrementPomodoro = async (id: string): Promise<Todo> => {
+  const res = await api.put<Todo>(`/todos/${id}/increment-pomodoro`);
+  return res.data;
+};
