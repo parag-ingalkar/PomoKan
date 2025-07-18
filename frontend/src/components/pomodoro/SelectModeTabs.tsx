@@ -1,16 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
-import type { Mode } from "./pomodoro/Pomo";
+import { usePomodoroStore } from "@/store/pomodoroStore";
 
-type Props = {
-	onSelectMode: (mode: Mode) => void;
-	currentMode: Mode;
-};
+type Mode = "pomodoro" | "short-break" | "long-break";
 
-export const SelectModeTabs: React.FC<Props> = ({
-	currentMode,
-	onSelectMode,
-}) => {
-	const [activeMode, setActiveMode] = useState<Mode>(currentMode);
+export const SelectModeTabs: React.FC = () => {
+	const mode = usePomodoroStore((s: { mode: Mode }) => s.mode);
+	const setMode = usePomodoroStore((s: { setMode: (mode: Mode) => void }) => s.setMode);
 	const containerRef = useRef<HTMLDivElement>(null);
 	const underlineRef = useRef<HTMLDivElement>(null);
 
@@ -21,28 +16,21 @@ export const SelectModeTabs: React.FC<Props> = ({
 	];
 
 	useEffect(() => {
-		// Update underline position on active mode change
 		if (!containerRef.current || !underlineRef.current) return;
-
-		const activeIndex = modes.findIndex((m) => m.value === activeMode);
+		const activeIndex = modes.findIndex((m) => m.value === mode);
 		const container = containerRef.current;
 		const buttons = Array.from(container.querySelectorAll("button"));
 		const activeButton = buttons[activeIndex];
-
 		if (activeButton) {
 			const buttonRect = activeButton.getBoundingClientRect();
 			const containerRect = container.getBoundingClientRect();
-
 			underlineRef.current.style.width = `${buttonRect.width}px`;
-			underlineRef.current.style.transform = `translateX(${
-				buttonRect.left - containerRect.left
-			}px)`;
+			underlineRef.current.style.transform = `translateX(${buttonRect.left - containerRect.left}px)`;
 		}
-	}, [activeMode, modes]);
+	}, [mode, modes]);
 
-	const handleClick = (mode: Mode) => {
-		setActiveMode(mode);
-		onSelectMode(mode);
+	const handleClick = (newMode: Mode) => {
+		setMode(newMode);
 	};
 
 	return (
@@ -55,14 +43,12 @@ export const SelectModeTabs: React.FC<Props> = ({
 				<button
 					key={value}
 					onClick={() => handleClick(value)}
-					className="relative z-10 px-3 py-2  transition-colors duration-300 bg-transparent focus:outline-none"
+					className={`relative z-10 px-3 py-2 transition-colors duration-300 bg-transparent focus:outline-none${mode === value ? " font-bold" : ""}`}
 					type="button"
 				>
 					{label}
 				</button>
 			))}
-
-			{/* Underline */}
 			<div
 				ref={underlineRef}
 				className="absolute bottom-0 h-0.5 bg-accent-foreground transition-all duration-300 ease-in-out"

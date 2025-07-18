@@ -15,17 +15,18 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DueDatePicker } from "./DueDatePicker";
 import { Checkbox } from "@/components/ui/checkbox";
-import { createTodo, patchTodo } from "@/api/todoApi";
+// Remove direct API calls
+import { useTodosStore } from "@/store/todosStore";
+
 import type { Todo } from "@/utils/type-todo";
 
 type Props = {
 	visible: boolean;
 	onClose: () => void;
-	onSubmit?: (data: any) => void;
 	todo?: Todo;
 };
 
-export const AddTaskDialog = ({ visible, onClose, onSubmit, todo }: Props) => {
+export const AddTaskDialog = ({ visible, onClose, todo }: Props) => {
 	const [description, setDescription] = useState(() => todo?.description ?? "");
 	const [dueDate, setDueDate] = useState<Date | undefined>(() =>
 		todo?.due_date ? new Date(todo.due_date) : undefined
@@ -33,6 +34,9 @@ export const AddTaskDialog = ({ visible, onClose, onSubmit, todo }: Props) => {
 	const [isImportant, setIsImportant] = useState(todo?.is_important ?? false);
 	const [isUrgent, setIsUrgent] = useState(todo?.is_urgent ?? false);
 	const [loading, setLoading] = useState(false);
+
+	const addTodo = useTodosStore((s) => s.addTodo);
+	const updateTodo = useTodosStore((s) => s.updateTodo);
 
 	useEffect(() => {
 		setDescription(todo?.description ?? "");
@@ -70,36 +74,26 @@ export const AddTaskDialog = ({ visible, onClose, onSubmit, todo }: Props) => {
 		e.preventDefault();
 		if (!description.trim()) return;
 
-		const payload: Partial<Todo> = {
+		const payload = {
 			description: description.trim(),
-			due_date: dueDate?.toISOString() ?? null,
+			due_date: dueDate ? dueDate.toISOString() : null,
 			is_important: isImportant,
 			is_urgent: isUrgent,
+			status: todo?.status ?? "to_do",
+			is_completed: todo?.is_completed ?? false,
+			completed_at: todo?.completed_at ?? null,
+			pomodoro_count: todo?.pomodoro_count ?? 0,
 		};
 
 		try {
 			setLoading(true);
-			let savedTodo: Todo;
 			if (todo) {
 				// UPDATE
-				savedTodo = await patchTodo(todo.id, {
-					...payload,
-					status: todo.status,
-					is_completed: todo.is_completed,
-					completed_at: todo.completed_at,
-					pomodoro_count: todo.pomodoro_count,
-				});
+				await updateTodo({ ...todo, ...payload });
 			} else {
 				// CREATE
-				savedTodo = await createTodo({
-					...payload,
-					status: "to_do",
-					is_completed: false,
-					completed_at: null,
-					pomodoro_count: 0,
-				});
+				await addTodo(payload);
 			}
-			onSubmit?.(savedTodo); // notify parent
 			onClose();
 			setDescription(""); // reset form
 			setDueDate(undefined);

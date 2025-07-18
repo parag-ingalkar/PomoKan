@@ -3,15 +3,16 @@ import type { ColumnProps, DropIndicatorProps } from "@/utils/type-kanban";
 import { useEffect, useRef, useState, type DragEvent } from "react";
 import { AddCard, Card } from "./KanbanCard";
 import api from "@/api/axios";
+import { useTodosStore } from "@/store/todosStore";
 
 export const Column = ({
 	title,
 	headingColor,
 	cards,
 	column,
-	setCards,
-}: ColumnProps) => {
+}: Omit<ColumnProps, 'setCards'>) => {
 	const [active, setActive] = useState(false);
+	const updateTodo = useTodosStore((s) => s.updateTodo);
 
 	const handleDragStart = (e: DragEvent, card: Todo) => {
 		e.dataTransfer.setData("cardId", card.id);
@@ -50,7 +51,8 @@ export const Column = ({
 				}
 			}
 
-			setCards(copy);
+			// Update the todo in the global store
+			updateTodo(cardToTransfer);
 			api
 				.patch(`/todos/${cardId}`, {
 					status: column,
@@ -148,7 +150,7 @@ export const Column = ({
 					})}
 					<DropIndicator beforeId={null} area={column} />
 
-					<AddCard column={column} setCards={setCards} />
+					<AddCard column={column} />
 				</div>
 			</div>
 			<div className="pointer-events-none absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-background to-transparent" />

@@ -4,11 +4,11 @@ import { type ColumnDef } from "@tanstack/react-table";
 import { type Todo } from "@/utils/type-todo";
 import { RowActions } from "./RowActions";
 import { Checkbox } from "../ui/checkbox";
+import { usePomodoroStore } from "@/store/pomodoroStore";
+import type { PomodoroState } from "@/store/pomodoroStore";
+import { Button } from "../ui/button";
 
-export const TaskTableColumns = (
-	onDelete: (id: string) => void,
-	onUpdate: (updatedTodo: Todo) => void
-): ColumnDef<Todo>[] => [
+export const TaskTableColumns = (): ColumnDef<Todo>[] => [
 	{
 		id: "select",
 		header: ({ table }) => (
@@ -34,9 +34,7 @@ export const TaskTableColumns = (
 	{
 		header: "Description",
 		accessorKey: "description",
-		cell: ({ row }) => (
-			<span className="">{row.getValue("description")}</span>
-		),
+		cell: ({ row }) => <span className="">{row.getValue("description")}</span>,
 		size: 350,
 	},
 	{
@@ -102,7 +100,7 @@ export const TaskTableColumns = (
 		id: "actions",
 		header: () => <span className="sr-only">Actions</span>,
 		cell: ({ row }) => (
-			<RowActions row={row} onDelete={onDelete} onUpdate={onUpdate} />
+			<RowActions row={row} />
 		),
 		size: 60,
 		enableHiding: false,

@@ -14,7 +14,7 @@ export type ColumnProps = {
 	headingColor: string;
 	cards: Todo[];
 	column: Status;
-	setCards: Dispatch<SetStateAction<Todo[]>>;
+	setCards?: Dispatch<SetStateAction<Todo[]>>;
 };
 
 export type CardProps = Todo & {
@@ -28,6 +28,6 @@ export type DropIndicatorProps = {
 
 export type AddCardProps = {
 	column: Status;
-	setCards: Dispatch<SetStateAction<Todo[]>>;
+	setCards?: Dispatch<SetStateAction<Todo[]>>;
 };
 

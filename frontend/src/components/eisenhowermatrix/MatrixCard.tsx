@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { useState, type FormEvent } from "react";
 import { Plus } from "lucide-react";
 import { DropIndicator } from "./Quadrant";
-import { createTodo } from "@/api/todoApi";
+import { useTodosStore } from "@/store/todosStore";
 
 export const Card = ({
 	description,
@@ -50,9 +50,10 @@ const priorityValues = {
 	delete: { is_important: false, is_urgent: false },
 };
 
-export const AddCard = ({ area, setCards }: AddCardProps) => {
+export const AddCard = ({ area }: Omit<AddCardProps, 'setCards'>) => {
 	const [text, setText] = useState("");
 	const [adding, setAdding] = useState(false);
+	const addTodo = useTodosStore((s) => s.addTodo);
 
 	const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
@@ -71,10 +72,7 @@ export const AddCard = ({ area, setCards }: AddCardProps) => {
 		};
 
 		try {
-			const newTodo = await createTodo(payload);
-
-			setCards((pv) => [...pv, newTodo]);
-
+			await addTodo(payload);
 			setAdding(false);
 		} catch (err) {
 			console.error("Failed to create task:", err);

@@ -4,21 +4,27 @@ import { useEffect, useState } from "react";
 import { TimerModeCollapsed } from "./TimerModePopover";
 import { SelectModeTabs } from "./SelectModeTabs";
 import { Vortex } from "../ui/vortex";
+import { usePomodoroStore } from "@/store/pomodoroStore";
+import api from "@/api/axios";
+import type { Todo } from "@/utils/type-todo";
+import { useTodosStore } from "@/store/todosStore";
 
-export type Mode = "pomodoro" | "short-break" | "long-break";
+type Mode = "pomodoro" | "short-break" | "long-break";
 
 const MODE_TIMES: Record<Mode, number> = {
-	pomodoro: 25 * 60,
-	"short-break": 0.1 * 60,
-	"long-break": 15 * 60,
+	pomodoro: 6,
+	"short-break": 2,
+	"long-break": 4,
 };
 
 export function Pomodoro() {
 	const [expanded, setExpanded] = useState(false);
-	const [mode, setMode] = useState<Mode>("pomodoro");
-	const [timeLeft, setTimeLeft] = useState(MODE_TIMES[mode]);
-	const [isRunning, setIsRunning] = useState(false);
+	const { selectedTask, clearSelectedTask, setLastUpdatedTask, isRunning, setIsRunning, mode, setMode } = usePomodoroStore();
+	const [timeLeft, setTimeLeft] = useState(MODE_TIMES[mode as Mode]);
 	const [collapsedHeight, setCollapsedHeight] = useState(0);
+	const [pomodoroCount, setPomodoroCount] = useState(0); // Track completed pomodoros
+	const updateTodo = useTodosStore((s) => s.updateTodo);
+
 	useEffect(() => {
 		const updateHeights = () => {
 			const vh = window.innerHeight;
@@ -33,9 +39,9 @@ export function Pomodoro() {
 
 	// Update timeLeft when mode changes
 	useEffect(() => {
-		setTimeLeft(MODE_TIMES[mode]);
+		setTimeLeft(MODE_TIMES[mode as Mode]);
 		setIsRunning(false);
-	}, [mode]);
+	}, [mode, setIsRunning]);
 
 	// Timer countdown effect
 	useEffect(() => {
@@ -43,15 +49,41 @@ export function Pomodoro() {
 
 		if (timeLeft === 0) {
 			setIsRunning(false);
+			if (mode === "pomodoro") {
+				// Only increment pomodoro count if mode is 'pomodoro'
+				if (selectedTask) {
+					api
+						.put(`/todos/${selectedTask.id}/increment-pomodoro`)
+						.then((res) => {
+							if (res.data) {
+								setLastUpdatedTask(res.data);
+								updateTodo(res.data);
+							}
+						})
+						.catch(() => {
+							console.warn("Failed to increment pomodoro count");
+						});
+				}
+				// Switch to short-break or long-break after pomodoro
+				if ((pomodoroCount + 1) % 4 === 0) {
+					setMode("long-break");
+				} else {
+					setMode("short-break");
+				}
+				setPomodoroCount((count) => count + 1);
+			} else if (mode === "short-break" || mode === "long-break") {
+				// After any break, switch back to pomodoro
+				setMode("pomodoro");
+			}
 			return;
 		}
 
 		const interval = setInterval(() => {
-			setTimeLeft((time) => time - 1);
+			setTimeLeft((time: number) => time - 1);
 		}, 1000);
 
 		return () => clearInterval(interval);
-	}, [isRunning, timeLeft]);
+	}, [timeLeft, isRunning]);
 
 	const formatTime = (seconds: number) => {
 		const mins = Math.floor(seconds / 60);
@@ -67,12 +99,12 @@ export function Pomodoro() {
 
 	const resetTimer = () => {
 		setIsRunning(false);
-		setTimeLeft(MODE_TIMES[mode]);
+		setTimeLeft(MODE_TIMES[mode as Mode]);
 	};
 
-	const onSelectMode = (newMode: Mode) => {
-		setMode(newMode);
-	};
+	// const onSelectMode = (newMode: Mode) => {
+	// 	setMode(newMode);
+	// };
 
 	const Timer = () => (
 		<div className="relative select-none">
@@ -83,8 +115,17 @@ export function Pomodoro() {
 			>
 				{formatTime(timeLeft)}
 			</div>
-
-			{/* <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent pointer-events-none" /> */}
+			{selectedTask && (
+				<div className="mt-2 text-center text-base text-accent-foreground">
+					🔥 Working on: <span className="font-semibold">{selectedTask.description}</span>
+					<button
+						className="ml-2 px-2 py-1 text-xs rounded bg-red-500 text-white hover:bg-red-600"
+						onClick={clearSelectedTask}
+					>
+						Clear
+					</button>
+				</div>
+			)}
 		</div>
 	);
 
@@ -142,10 +183,7 @@ export function Pomodoro() {
 								baseHue={100}
 								className="flex flex-col items-center justify-evenly h-full gap-10"
 							>
-								<SelectModeTabs
-									currentMode={mode}
-									onSelectMode={onSelectMode}
-								/>
+								<SelectModeTabs />
 								<Timer />
 								<Controls />
 							</Vortex>
@@ -162,10 +200,7 @@ export function Pomodoro() {
 							{/* Left: Controls */}
 							<div className="flex-1 flex justify-start items-center gap-2">
 								<Controls />
-								<TimerModeCollapsed
-									currentMode={mode}
-									onSelectMode={onSelectMode}
-								/>
+								<TimerModeCollapsed />
 							</div>
 
 							{/* Center: Timer */}

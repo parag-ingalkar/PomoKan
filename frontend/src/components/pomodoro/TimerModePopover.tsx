@@ -7,19 +7,17 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import type { Mode } from "./Pomo";
+import { usePomodoroStore } from "@/store/pomodoroStore";
 
-export const TimerModeCollapsed = ({
-	currentMode,
-	onSelectMode,
-}: {
-	currentMode: Mode;
-	onSelectMode: (mode: Mode) => void;
-}) => {
+type Mode = "pomodoro" | "short-break" | "long-break";
+
+export const TimerModeCollapsed = () => {
+	const mode = usePomodoroStore((s: { mode: Mode }) => s.mode);
+	const setMode = usePomodoroStore((s: { setMode: (mode: Mode) => void }) => s.setMode);
 	return (
 		<Select
-			defaultValue={currentMode}
-			onValueChange={(val) => onSelectMode(val as Mode)}
+			value={mode}
+			onValueChange={(val) => setMode(val as Mode)}
 		>
 			<SelectTrigger className="w-fit">
 				<SelectValue placeholder="Select Mode" />

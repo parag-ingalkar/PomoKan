@@ -6,6 +6,7 @@ import { Plus } from "lucide-react";
 import { DropIndicator } from "./KanbanColumn";
 import { Badge } from "../ui/badge";
 import { createTodo } from "@/api/todoApi";
+import { useTodosStore } from "@/store/todosStore";
 
 export const Card = ({
 	description,
@@ -56,10 +57,11 @@ export const Card = ({
 	);
 };
 
-export const AddCard = ({ column, setCards }: AddCardProps) => {
+export const AddCard = ({ column }: Omit<AddCardProps, 'setCards'>) => {
 	const [text, setText] = useState("");
 	const [adding, setAdding] = useState(false);
 	const [pendingSubmit, setPendingSubmit] = useState(false);
+	const addTodo = useTodosStore((s) => s.addTodo);
 
 	// Synchronous submit handler
 	const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -79,8 +81,8 @@ export const AddCard = ({ column, setCards }: AddCardProps) => {
 		};
 	  
 		try {
-		  const newTodo = await createTodo(payload);
-		  setCards((pv) => [...pv, newTodo]);
+		  console.log("payload", payload);
+		  await addTodo(payload);
 		  setText(""); // Clear input after successful creation
 		  setAdding(false);
 		} catch (err) {

@@ -169,9 +169,9 @@ export const DashboardPage = () => {
 			</div>
 
 			{/* Pomodoro dock with smooth sliding animation */}
-			<div className="relative h-1/6">
+			{/* <div className="relative h-1/6">
 				<Pomodoro />
-			</div>
+			</div> */}
 		</div>
 	);
 };

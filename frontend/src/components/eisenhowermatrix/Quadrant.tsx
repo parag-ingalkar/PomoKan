@@ -4,14 +4,15 @@ import { useState, type DragEvent } from "react";
 import api from "@/api/axios";
 import { Card, AddCard } from "./MatrixCard";
 import { Separator } from "../ui/separator";
+import { useTodosStore } from "@/store/todosStore";
 
 export const Quadrant = ({
 	title,
 	cards,
 	quadrant,
-	setCards,
-}: QuadrantProps) => {
+}: Omit<QuadrantProps, 'setCards'>) => {
 	const [active, setActive] = useState(false);
+	const updateTodo = useTodosStore((s) => s.updateTodo);
 
 	const handleDragStart = (e: DragEvent, card: Todo) => {
 		e.dataTransfer.setData("cardId", card.id);
@@ -79,7 +80,8 @@ export const Quadrant = ({
 				}
 			}
 
-			setCards(copy);
+			// Update the todo in the global store
+			updateTodo(cardToTransfer);
 			api
 				.patch(`/todos/${cardId}`, {
 					is_important,
@@ -179,7 +181,7 @@ export const Quadrant = ({
 					return <Card key={c.id} {...c} handleDragStart={handleDragStart} />;
 				})}
 				<DropIndicator beforeId={null} area={quadrant} />
-				<AddCard area={quadrant} setCards={setCards} />
+				<AddCard area={quadrant} />
 			</div>
 		</div>
 	);

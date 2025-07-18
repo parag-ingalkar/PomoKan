@@ -1,19 +1,11 @@
-import {
-	type Dispatch,
-	type SetStateAction,
-	useState,
-	type DragEvent,
-} from "react";
+import { useState, type DragEvent } from "react";
 import { Trash, Flame } from "lucide-react";
-import type { Todo } from "@/utils/type-todo";
+import { useTodosStore } from "@/store/todosStore";
 import { deleteTodo } from "@/api/todoApi";
 
-export const BurnBarrel = ({
-	setCards,
-}: {
-	setCards: Dispatch<SetStateAction<Todo[]>>;
-}) => {
+export const BurnBarrel = () => {
 	const [active, setActive] = useState(false);
+	const deleteTodoStore = useTodosStore((s) => s.deleteTodo);
 
 	const handleDragOver = (e: DragEvent) => {
 		e.preventDefault();
@@ -28,10 +20,7 @@ export const BurnBarrel = ({
 		const cardId = e.dataTransfer.getData("cardId");
 
 		try {
-			await deleteTodo(cardId);
-
-			setCards((pv) => pv.filter((c) => c.id !== cardId));
-
+			deleteTodoStore(cardId);
 			setActive(false);
 		} catch (err) {
 			console.error("Failed to create task:", err);

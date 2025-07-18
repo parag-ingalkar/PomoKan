@@ -21,34 +21,27 @@ import {
 	AlertDialogTitle,
 } from "../ui/alert-dialog";
 import { useState } from "react";
-import { deleteTodo } from "@/api/todoApi";
 import { AddTaskDialog } from "./AddTaskDialog";
+import { useTodosStore } from "@/store/todosStore";
 
-export function RowActions({
-	row,
-	onDelete,
-	onUpdate,
-}: {
-	row: Row<Todo>;
-	onDelete: (id: string) => void;
-	onUpdate?: (updatedTodo: Todo) => void;
-}) {
+export function RowActions({ row }: { row: Row<Todo> }) {
 	const [showDialog, setShowDialog] = useState(false);
-
 	const [editOpen, setEditOpen] = useState(false);
+	const deleteTodoStore = useTodosStore((s) => s.deleteTodo);
+	const updateTodoStore = useTodosStore((s) => s.updateTodo);
 
 	const handleEdit = () => {
 		setEditOpen(true);
 	};
 
 	const handleSave = (updated: Todo) => {
-		onUpdate?.(updated);
+		updateTodoStore(updated);
 		setEditOpen(false);
 	};
 
 	const handleDelete = () => {
-		deleteTodo(row.original.id);
-		onDelete(row.original.id);
+		console.log("row.original.id", row.original.id);
+		deleteTodoStore(row.original.id);
 		setShowDialog(false);
 	};
 

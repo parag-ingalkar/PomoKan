@@ -18,28 +18,25 @@ import { type Todo } from "@/utils/type-todo";
 import { AddTaskDialog } from "./AddTaskDialog";
 import { useState } from "react";
 import { deleteMultipleTodos } from "@/api/todoApi";
+import { useTodosStore } from "@/store/todosStore";
 
 type Props = {
 	table: Table<Todo>;
-	setTodos: React.Dispatch<React.SetStateAction<Todo[]>>;
 };
 
-export function TaskActions({ table, setTodos }: Props) {
+export function TaskActions({ table }: Props) {
 	const [showAddTask, setShowAddTask] = useState(false);
 
 	const selectedRows = table.getSelectedRowModel().rows;
 
 	const handleDelete = async () => {
-		console.log(`Deleting ${selectedRows.length} todos`);
 		const todoIds = selectedRows.map((row) => row.original.id);
 		await deleteMultipleTodos(todoIds);
-		setTodos((prev) =>
-			prev.filter(
-				(task) => !selectedRows.some((r) => r.original.id === task.id)
-			)
-		);
+		// Remove from global store
+		todoIds.forEach((id) => useTodosStore.getState().deleteTodo(id));
 		table.resetRowSelection();
 	};
+
 
 	return (
 		<div className="flex justify-between items-center gap-2">
@@ -80,9 +77,6 @@ export function TaskActions({ table, setTodos }: Props) {
 			<AddTaskDialog
 				visible={showAddTask}
 				onClose={() => setShowAddTask(false)}
-				onSubmit={(task) => {
-					setTodos((prev) => [...prev, task]);
-				}}
 			/>
 		</div>
 	);

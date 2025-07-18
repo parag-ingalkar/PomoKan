@@ -24,6 +24,9 @@ declare module "@tanstack/react-table" {
 import { TaskFilters } from "./TaskFilters";
 import { TaskActions } from "./TaskActions";
 import { type Todo } from "@/utils/type-todo";
+import { useTodosStore } from "@/store/todosStore";
+import { usePomodoroStore } from "@/store/pomodoroStore";
+import type { PomodoroState } from "@/store/pomodoroStore";
 import { cn } from "@/lib/utils";
 
 import {
@@ -38,10 +41,9 @@ import { ChevronUpIcon, ChevronDownIcon } from "lucide-react";
 
 type Props = {
 	todos: Todo[];
-	setTodos: React.Dispatch<React.SetStateAction<Todo[]>>;
 };
 
-export function TaskTable({ todos, setTodos }: Props) {
+export function TaskTable({ todos }: Props) {
 	const id = useId();
 	const [sorting, setSorting] = useState<SortingState>([
 		{
@@ -56,20 +58,11 @@ export function TaskTable({ todos, setTodos }: Props) {
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 	const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
 
-	const handleDeleteTodo = (id: string) => {
-		setTodos((prev) => prev.filter((todo) => todo.id !== id));
-	};
+	const selectedTask = usePomodoroStore((s: PomodoroState) => s.selectedTask);
+	const setSelectedTask = usePomodoroStore((s: PomodoroState) => s.setSelectedTask);
+	const clearSelectedTask = usePomodoroStore((s: PomodoroState) => s.clearSelectedTask);
 
-	const handleUpdateTodo = (updatedTodo: Todo) => {
-		setTodos((prev) =>
-			prev.map((todo) => (todo.id === updatedTodo.id ? updatedTodo : todo))
-		);
-	};
-
-	const columns = useMemo(
-		() => TaskTableColumns(handleDeleteTodo, handleUpdateTodo),
-		[]
-	);
+	const columns = TaskTableColumns();
 
 	const table = useReactTable({
 		data: todos,
@@ -94,14 +87,30 @@ export function TaskTable({ todos, setTodos }: Props) {
 	});
 
 	return (
-		<div className="h-full w-full flex flex-col justify-between gap-4 p-4">
-			<div className="task-list-actionbar flex justify-between">
+		<div className="container h-full flex flex-col justify-between gap-4 p-4 bg-white/10">
+			<div className="task-list-actionbar bg-green-500/10 flex justify-between items-center">
 				<TaskFilters table={table} />
-				<TaskActions table={table} setTodos={setTodos} />
+				<div className="flex items-center gap-4">
+					{/* Page size selector */}
+					<label className="text-sm font-medium flex items-center gap-2">
+						Show
+						<select
+							className="border rounded px-2 py-1 bg-background"
+							value={pagination.pageSize}
+							onChange={e => setPagination(p => ({ ...p, pageSize: Number(e.target.value), pageIndex: 0 }))}
+						>
+							{[5, 10, 20, 50].map(size => (
+								<option key={size} value={size}>{size}</option>
+							))}
+						</select>
+						tasks per page
+					</label>
+					<TaskActions table={table} />
+				</div>
 			</div>
-			<div className="border rounded-md overflow-hidden">
-				<Table className="table-fixed">
-					<TableHeader className="">
+			<div className=" table-container flex-1 min-h-0 overflow-y-auto border rounded-md bg-blue-500/10">
+				<Table className="bg-red-100/10 table-fixed ">
+					<TableHeader className="bg-red-500/15 sticky top-0 z-10">
 						{table.getHeaderGroups().map((headerGroup) => (
 							<TableRow key={headerGroup.id}>
 								{headerGroup.headers.map((header) => (
@@ -166,28 +175,37 @@ export function TaskTable({ todos, setTodos }: Props) {
 							</TableRow>
 						))}
 					</TableHeader>
-					<TableBody>
-						{table.getRowModel().rows.map((row) => (
-							<TableRow key={row.id} className="text-center font-light">
-								{row.getVisibleCells().map((cell) => (
-									<TableCell key={cell.id}
-										style={
-											cell.column.getSize()
-												? { width: cell.column.getSize(), minWidth: cell.column.getSize(), maxWidth: cell.column.getSize() }
-												: undefined
-										}
+					{/* Scrollable Table Body */}
+						<TableBody>
+							{table.getRowModel().rows.map((row) => {
+								const isSelected = selectedTask && row.original.id === selectedTask.id;
+								return (
+									<TableRow
+										key={row.id}
+										className={cn("text-center font-light cursor-pointer transition-colors", isSelected && "bg-accent")}
+										onClick={() => {isSelected ?clearSelectedTask() : setSelectedTask(row.original)}}
 									>
-										{flexRender(cell.column.columnDef.cell, cell.getContext())}
-									</TableCell>
-								))}
-							</TableRow>
-						))}
-					</TableBody>
+										{row.getVisibleCells().map((cell) => (
+											<TableCell
+												key={cell.id}
+												style={
+													cell.column.getSize()
+														? { width: cell.column.getSize(), minWidth: cell.column.getSize(), maxWidth: cell.column.getSize() }
+														: undefined
+												}
+											>
+												{flexRender(cell.column.columnDef.cell, cell.getContext())}
+											</TableCell>
+										))}
+									</TableRow>
+								);
+							})}
+						</TableBody>
 				</Table>
 			</div>
 
 			{/* Pagination Controls */}
-			<div className="flex items-center justify-between mt-auto px-2">
+			<div className="pagination-container flex items-center bg-yellow-500/10 justify-between mt-auto px-2">
 				<button
 					className="px-3 py-1 rounded border disabled:opacity-50"
 					onClick={() => table.previousPage()}
