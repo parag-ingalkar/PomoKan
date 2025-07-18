@@ -33,38 +33,32 @@ export const TaskTableColumns = (
 	},
 	{
 		header: "Description",
-		meta: { align: "left" },
 		accessorKey: "description",
 		cell: ({ row }) => (
-			<div className="font-medium text-start">
-				{row.getValue("description")}
-			</div>
+			<span className="">{row.getValue("description")}</span>
 		),
-		size: 250,
+		size: 350,
 	},
 	{
 		header: "Urgency",
-		meta: { align: "center" },
 		accessorKey: "is_urgent",
 		cell: ({ row }) => {
 			const isUrgent = row.getValue("is_urgent");
-			return <div className="font-medium">{isUrgent ? "High" : "Low"}</div>;
+			return <span>{isUrgent ? "High" : "Low"}</span>;
 		},
 		size: 80,
 	},
 	{
 		header: "Importance",
-		meta: { align: "center" },
 		accessorKey: "is_important",
 		cell: ({ row }) => {
 			const isUrgent = row.getValue("is_important");
-			return <div className="font-medium">{isUrgent ? "High" : "Low"}</div>;
+			return <span>{isUrgent ? "High" : "Low"}</span>;
 		},
 		size: 90,
 	},
 	{
 		header: "Status",
-		meta: { align: "center" },
 		accessorKey: "status",
 		cell: ({ row }) => {
 			const status: string = row.getValue("status");
@@ -101,13 +95,11 @@ export const TaskTableColumns = (
 
 	{
 		header: "Pomodoros",
-		meta: { align: "center" },
 		accessorKey: "pomodoro_count",
-		size: 100,
+		size: 80,
 	},
 	{
 		id: "actions",
-		meta: { align: "center" },
 		header: () => <span className="sr-only">Actions</span>,
 		cell: ({ row }) => (
 			<RowActions row={row} onDelete={onDelete} onUpdate={onUpdate} />

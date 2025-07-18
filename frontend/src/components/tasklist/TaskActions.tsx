@@ -17,6 +17,7 @@ import type { Table } from "@tanstack/react-table";
 import { type Todo } from "@/utils/type-todo";
 import { AddTaskDialog } from "./AddTaskDialog";
 import { useState } from "react";
+import { deleteMultipleTodos } from "@/api/todoApi";
 
 type Props = {
 	table: Table<Todo>;
@@ -28,8 +29,10 @@ export function TaskActions({ table, setTodos }: Props) {
 
 	const selectedRows = table.getSelectedRowModel().rows;
 
-	const handleDelete = () => {
+	const handleDelete = async () => {
 		console.log(`Deleting ${selectedRows.length} todos`);
+		const todoIds = selectedRows.map((row) => row.original.id);
+		await deleteMultipleTodos(todoIds);
 		setTodos((prev) =>
 			prev.filter(
 				(task) => !selectedRows.some((r) => r.original.id === task.id)
@@ -39,7 +42,7 @@ export function TaskActions({ table, setTodos }: Props) {
 	};
 
 	return (
-		<div className="flex justify-between items-center">
+		<div className="flex justify-between items-center gap-2">
 			{selectedRows.length > 0 && (
 				<AlertDialog>
 					<AlertDialogTrigger asChild>

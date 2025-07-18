@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional
+from typing import List, Optional
 from uuid import UUID
 from pydantic import BaseModel, ConfigDict
 from src.entities.todo import Status
@@ -28,3 +28,13 @@ class TodoUpdate(BaseModel):
     status: Optional[str] = None
     is_important: Optional[bool] = None
     is_urgent: Optional[bool] = None
+
+# Request model for batch delete
+class BatchDeleteRequest(BaseModel):
+    todo_ids: List[UUID]
+
+# Response model for batch delete
+class BatchDeleteResponse(BaseModel):
+    deleted_count: int
+    failed_deletions: List[dict] = []  # For IDs that couldn't be deleted
+    message: str

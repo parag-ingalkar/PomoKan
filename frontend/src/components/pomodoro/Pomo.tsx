@@ -1,12 +1,23 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, ChevronUp, Pause, Play, RotateCcw } from "lucide-react";
 import { useEffect, useState } from "react";
-import { TimerModeCollapsed, TimerModeExpanded } from "./TimerModePopover";
+import { TimerModeCollapsed } from "./TimerModePopover";
+import { SelectModeTabs } from "./SelectModeTabs";
+import { Vortex } from "../ui/vortex";
+
+export type Mode = "pomodoro" | "short-break" | "long-break";
+
+const MODE_TIMES: Record<Mode, number> = {
+	pomodoro: 25 * 60,
+	"short-break": 0.1 * 60,
+	"long-break": 15 * 60,
+};
 
 export function Pomodoro() {
 	const [expanded, setExpanded] = useState(false);
+	const [mode, setMode] = useState<Mode>("pomodoro");
+	const [timeLeft, setTimeLeft] = useState(MODE_TIMES[mode]);
 	const [isRunning, setIsRunning] = useState(false);
-	const [mode, setMode] = useState("pomodoro");
 	const [collapsedHeight, setCollapsedHeight] = useState(0);
 	useEffect(() => {
 		const updateHeights = () => {
@@ -20,11 +31,60 @@ export function Pomodoro() {
 		return () => window.removeEventListener("resize", updateHeights);
 	}, []);
 
+	// Update timeLeft when mode changes
+	useEffect(() => {
+		setTimeLeft(MODE_TIMES[mode]);
+		setIsRunning(false);
+	}, [mode]);
+
+	// Timer countdown effect
+	useEffect(() => {
+		if (!isRunning) return;
+
+		if (timeLeft === 0) {
+			setIsRunning(false);
+			return;
+		}
+
+		const interval = setInterval(() => {
+			setTimeLeft((time) => time - 1);
+		}, 1000);
+
+		return () => clearInterval(interval);
+	}, [isRunning, timeLeft]);
+
+	const formatTime = (seconds: number) => {
+		const mins = Math.floor(seconds / 60);
+		const secs = seconds % 60;
+		return `${mins.toString().padStart(2, "0")}:${secs
+			.toString()
+			.padStart(2, "0")}`;
+	};
+
+	const toggleTimer = () => {
+		setIsRunning(!isRunning);
+	};
+
+	const resetTimer = () => {
+		setIsRunning(false);
+		setTimeLeft(MODE_TIMES[mode]);
+	};
+
+	const onSelectMode = (newMode: Mode) => {
+		setMode(newMode);
+	};
+
 	const Timer = () => (
-		<div
-			className={`text-center font-bold ${expanded ? "text-9xl" : "text-5xl"}`}
-		>
-			25:00
+		<div className="relative select-none">
+			<div
+				className={`text-center opacity-90 font-bold ${
+					expanded ? "text-9xl" : "text-5xl"
+				}`}
+			>
+				{formatTime(timeLeft)}
+			</div>
+
+			{/* <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent pointer-events-none" /> */}
 		</div>
 	);
 
@@ -32,7 +92,7 @@ export function Pomodoro() {
 		<div className="flex gap-2 items-center">
 			<button
 				className="p-4 rounded-full gap-2 flex items-center justify-center bg-foreground/10 hover:bg-foreground/20"
-				onClick={() => setIsRunning(!isRunning)}
+				onClick={toggleTimer}
 			>
 				{isRunning ? (
 					<Pause size={expanded ? 24 : 20} />
@@ -45,9 +105,7 @@ export function Pomodoro() {
 			</button>
 			<button
 				className="p-4 rounded-full gap-2 flex items-center justify-center bg-foreground/10 hover:bg-foreground/20"
-				onClick={() => {
-					/* reset logic */
-				}}
+				onClick={resetTimer}
 			>
 				<RotateCcw size={expanded ? 24 : 20} />
 				{expanded && <span className="text-lg">Reset</span>}
@@ -75,12 +133,22 @@ export function Pomodoro() {
 							animate={{ opacity: 1, y: 0 }}
 							exit={{ opacity: 0, y: 20 }}
 							transition={{ duration: 0.3 }}
-							className="flex flex-col items-center justify-center gap-6 h-full px-4 py-8"
+							className="h-full bg-white/10"
 						>
-							<TimerModeExpanded />
-							<Timer />
-							<Controls />
-							{/* Extra expanded-only content can go here */}
+							<Vortex
+								backgroundColor="black"
+								rangeY={800}
+								particleCount={300}
+								baseHue={100}
+								className="flex flex-col items-center justify-evenly h-full gap-10"
+							>
+								<SelectModeTabs
+									currentMode={mode}
+									onSelectMode={onSelectMode}
+								/>
+								<Timer />
+								<Controls />
+							</Vortex>
 						</motion.div>
 					) : (
 						<motion.div
@@ -94,7 +162,10 @@ export function Pomodoro() {
 							{/* Left: Controls */}
 							<div className="flex-1 flex justify-start items-center gap-2">
 								<Controls />
-								<TimerModeCollapsed />
+								<TimerModeCollapsed
+									currentMode={mode}
+									onSelectMode={onSelectMode}
+								/>
 							</div>
 
 							{/* Center: Timer */}

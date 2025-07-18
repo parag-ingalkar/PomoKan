@@ -4,7 +4,6 @@ import { motion } from "framer-motion";
 import { useState, type FormEvent } from "react";
 import { Plus } from "lucide-react";
 import { DropIndicator } from "./Quadrant";
-import { Badge } from "../ui/badge";
 import { createTodo } from "@/api/todoApi";
 
 export const Card = ({
@@ -87,7 +86,9 @@ export const AddCard = ({ area, setCards }: AddCardProps) => {
 		<>
 			{adding ? (
 				<motion.form layout onSubmit={handleSubmit}>
-					<textarea
+					<input
+					type="text"
+						value={text}
 						onChange={(e) => setText(e.target.value)}
 						autoFocus
 						placeholder="Add new task..."
@@ -95,6 +96,7 @@ export const AddCard = ({ area, setCards }: AddCardProps) => {
 					/>
 					<div className="mt-1.5 flex items-center justify-end gap-1.5">
 						<button
+							type="button"
 							onClick={() => setAdding(false)}
 							className="px-3 py-1.5 text-xs text-neutral-400 transition-colors hover:text-neutral-50"
 						>

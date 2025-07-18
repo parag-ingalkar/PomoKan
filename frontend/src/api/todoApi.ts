@@ -30,3 +30,10 @@ export const patchTodo = async (id: string, updates: Partial<Todo>): Promise<Tod
 export const deleteTodo = async (id: string): Promise<void> => {
   await api.delete(`/todos/${id}`);
 };
+
+// DELETE multiple todos
+export const deleteMultipleTodos = async (todoIds: string[]): Promise<void> => {
+  await api.delete('/todos/delete-batch', {
+    data: { todo_ids: todoIds }
+  });
+};

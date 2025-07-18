@@ -5,7 +5,7 @@ import { Kanban } from "@/components/kanban/Kanban";
 import TaskList from "@/components/tasklist/TaskList";
 import EisenhoverMatrix from "@/components/eisenhowermatrix/EisenhoverMatrix";
 // import { Pomodoro } from "@/components/Pomodoro";
-import { Pomodoro } from "@/components/Pomo";
+import { Pomodoro } from "@/components/pomodoro/Pomo";
 
 export const DashboardPage = () => {
 	const [isExpanded, setIsExpanded] = useState(false);

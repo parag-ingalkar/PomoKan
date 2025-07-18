@@ -27,7 +27,7 @@ export default function TaskList() {
 
 	return (
 		// TODO : Change the w-5xl value correctly to inherit full widht from parent
-		<div className="space-y-4 w-6xl m-4">
+		<div className="h-full w-full flex justify-around">
 			{error && <p className="text-red-500">{error}</p>}
 			<TaskTable todos={todos} setTodos={setTodos} />
 		</div>

@@ -1,7 +1,7 @@
 import { type Todo } from "@/utils/type-todo";
 import type { AddCardProps, CardProps } from "@/utils/type-kanban";
 import { motion } from "framer-motion";
-import { useState, type FormEvent } from "react";
+import { useState, type FormEvent, useEffect } from "react";
 import { Plus } from "lucide-react";
 import { DropIndicator } from "./KanbanColumn";
 import { Badge } from "../ui/badge";
@@ -59,40 +59,43 @@ export const Card = ({
 export const AddCard = ({ column, setCards }: AddCardProps) => {
 	const [text, setText] = useState("");
 	const [adding, setAdding] = useState(false);
+	const [pendingSubmit, setPendingSubmit] = useState(false);
 
+	// Synchronous submit handler
 	const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
-
+	  
 		if (!text.trim().length) return;
-
+	  
 		const payload: Omit<Todo, "id"> = {
-			description: text.trim(),
-			due_date: null,
-			status: column,
-			is_important: true,
-			is_urgent: false,
-			is_completed: false,
-			completed_at: null,
-			pomodoro_count: 0,
+		  description: text.trim(),
+		  due_date: null,
+		  status: column,
+		  is_important: true,
+		  is_urgent: false,
+		  is_completed: false,
+		  completed_at: null,
+		  pomodoro_count: 0,
 		};
-
+	  
 		try {
-			const newTodo = await createTodo(payload);
-
-			setCards((pv) => [...pv, newTodo]);
-
-			setAdding(false);
+		  const newTodo = await createTodo(payload);
+		  setCards((pv) => [...pv, newTodo]);
+		  setText(""); // Clear input after successful creation
+		  setAdding(false);
 		} catch (err) {
-			console.error("Failed to create task:", err);
-			alert("Error creating task. Please try again.");
+		  console.error("Failed to create task:", err);
+		  alert("Error creating task. Please try again.");
 		}
-	};
+	  };
 
 	return (
 		<>
 			{adding ? (
 				<motion.form layout onSubmit={handleSubmit}>
-					<textarea
+					<input
+					type="text"
+						value={text}
 						onChange={(e) => setText(e.target.value)}
 						autoFocus
 						placeholder="Add new task..."
@@ -100,6 +103,7 @@ export const AddCard = ({ column, setCards }: AddCardProps) => {
 					/>
 					<div className="mt-1.5 flex items-center justify-end gap-1.5">
 						<button
+						type="button"
 							onClick={() => setAdding(false)}
 							className="px-3 py-1.5 text-xs text-neutral-400 transition-colors hover:text-neutral-50"
 						>

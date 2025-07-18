@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from typing import List
 from uuid import uuid4, UUID
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
@@ -70,6 +71,21 @@ def delete_todo(current_user: TokenData, db: Session, todo_id: UUID) -> None:
     db.delete(todo)
     db.commit()
     logging.info(f"Todo {todo_id} deleted by user {current_user.get_uuid()}")
+
+def batch_delete_todos(current_user: TokenData, db: Session, request: list[UUID]) -> None:
+    try:
+        deleted_count = (
+            db.query(Todo)
+            .filter(Todo.id.in_(request.todo_ids))
+            .filter(Todo.user_id == current_user.get_uuid())
+            .delete(synchronize_session=False)
+        )
+        db.commit()
+        logging.info(f"Batch deleted {deleted_count} todos for user {current_user.get_uuid()}")
+    except Exception as e:
+        logging.error(f"Failed to batch delete todos for user {current_user.get_uuid()}. Error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to delete todos")
+
 
 def patch_todo(current_user: TokenData, db: Session, todo_id: UUID, todo_update: models.TodoUpdate) -> Todo:
     todo_data = todo_update.model_dump(exclude_unset=True)

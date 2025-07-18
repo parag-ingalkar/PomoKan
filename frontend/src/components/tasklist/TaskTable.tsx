@@ -80,7 +80,7 @@ export function TaskTable({ todos, setTodos }: Props) {
 			columnFilters,
 			columnVisibility,
 		},
-		columnResizeMode: "onEnd",
+		
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		onSortingChange: setSorting,
@@ -94,26 +94,32 @@ export function TaskTable({ todos, setTodos }: Props) {
 	});
 
 	return (
-		<>
+		<div className="h-full w-full flex flex-col justify-between gap-4 p-4">
 			<div className="task-list-actionbar flex justify-between">
 				<TaskFilters table={table} />
 				<TaskActions table={table} setTodos={setTodos} />
 			</div>
 			<div className="border rounded-md overflow-hidden">
-				<Table>
-					<TableHeader>
+				<Table className="table-fixed">
+					<TableHeader className="">
 						{table.getHeaderGroups().map((headerGroup) => (
 							<TableRow key={headerGroup.id}>
 								{headerGroup.headers.map((header) => (
-									<TableHead key={header.id}>
+									<TableHead key={header.id}
+										style={
+											header.getSize()
+												? { width: header.getSize(), minWidth: header.getSize(), maxWidth: header.getSize() }
+												: undefined
+										}
+									>
 										{header.isPlaceholder ? null : header.column.getCanSort() ? (
 											<div
 												className={cn(
 													header.column.columnDef.meta?.align === "left"
-														? "justify-start"
-														: "justify-center",
-													header.column.getCanSort() &&
-														"flex h-full cursor-pointer items-center gap-2 select-none"
+													? "justify-start"
+													: "justify-center",
+												header.column.getCanSort() &&
+													"flex h-full cursor-pointer items-center gap-2 select-none"
 												)}
 												onClick={header.column.getToggleSortingHandler()}
 												onKeyDown={(e) => {
@@ -162,9 +168,15 @@ export function TaskTable({ todos, setTodos }: Props) {
 					</TableHeader>
 					<TableBody>
 						{table.getRowModel().rows.map((row) => (
-							<TableRow key={row.id} className="text-center">
+							<TableRow key={row.id} className="text-center font-light">
 								{row.getVisibleCells().map((cell) => (
-									<TableCell key={cell.id}>
+									<TableCell key={cell.id}
+										style={
+											cell.column.getSize()
+												? { width: cell.column.getSize(), minWidth: cell.column.getSize(), maxWidth: cell.column.getSize() }
+												: undefined
+										}
+									>
 										{flexRender(cell.column.columnDef.cell, cell.getContext())}
 									</TableCell>
 								))}
@@ -173,6 +185,27 @@ export function TaskTable({ todos, setTodos }: Props) {
 					</TableBody>
 				</Table>
 			</div>
-		</>
+
+			{/* Pagination Controls */}
+			<div className="flex items-center justify-between mt-auto px-2">
+				<button
+					className="px-3 py-1 rounded border disabled:opacity-50"
+					onClick={() => table.previousPage()}
+					disabled={!table.getCanPreviousPage()}
+				>
+					Previous
+				</button>
+				<span className="text-sm">
+					Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
+				</span>
+				<button
+					className="px-3 py-1 rounded border disabled:opacity-50"
+					onClick={() => table.nextPage()}
+					disabled={!table.getCanNextPage()}
+				>
+					Next
+				</button>
+			</div>
+		</div>
 	);
 }
