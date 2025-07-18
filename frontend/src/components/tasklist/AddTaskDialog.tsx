@@ -115,6 +115,7 @@ export const AddTaskDialog = ({ visible, onClose, todo }: Props) => {
 					animate={{ opacity: 1 }}
 					exit={{ opacity: 0 }}
 					className="fixed inset-0 z-30 bg-black/20 backdrop-blur-sm"
+					onClick={onClose} 
 				/>
 			</AnimatePresence>
 
@@ -125,6 +126,7 @@ export const AddTaskDialog = ({ visible, onClose, todo }: Props) => {
 					exit={{ scale: 0.95, opacity: 0 }}
 					transition={{ duration: 0.2 }}
 					className="fixed z-40 inset-0 flex justify-center"
+					onClick={e => e.stopPropagation()}
 				>
 					<Card className="relative max-w-fit max-h-fit mt-[150px]">
 						<CardHeader>

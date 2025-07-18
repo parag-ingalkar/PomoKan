@@ -19,7 +19,15 @@ const MODE_TIMES: Record<Mode, number> = {
 
 export function Pomodoro() {
 	const [expanded, setExpanded] = useState(false);
-	const { selectedTask, clearSelectedTask, setLastUpdatedTask, isRunning, setIsRunning, mode, setMode } = usePomodoroStore();
+	const {
+		selectedTask,
+		clearSelectedTask,
+		setLastUpdatedTask,
+		isRunning,
+		setIsRunning,
+		mode,
+		setMode,
+	} = usePomodoroStore();
 	const [timeLeft, setTimeLeft] = useState(MODE_TIMES[mode as Mode]);
 	const [collapsedHeight, setCollapsedHeight] = useState(0);
 	const [pomodoroCount, setPomodoroCount] = useState(0); // Track completed pomodoros
@@ -115,17 +123,6 @@ export function Pomodoro() {
 			>
 				{formatTime(timeLeft)}
 			</div>
-			{selectedTask && (
-				<div className="mt-2 text-center text-base text-accent-foreground">
-					🔥 Working on: <span className="font-semibold">{selectedTask.description}</span>
-					<button
-						className="ml-2 px-2 py-1 text-xs rounded bg-red-500 text-white hover:bg-red-600"
-						onClick={clearSelectedTask}
-					>
-						Clear
-					</button>
-				</div>
-			)}
 		</div>
 	);
 
@@ -181,10 +178,24 @@ export function Pomodoro() {
 								rangeY={800}
 								particleCount={300}
 								baseHue={100}
-								className="flex flex-col items-center justify-evenly h-full gap-10"
+								className="flex flex-col items-center justify-center h-full gap-10"
 							>
 								<SelectModeTabs />
 								<Timer />
+								{selectedTask && (
+									<div className="mt-2 text-center text-base text-accent-foreground/80 flex flex-col items-center">
+										🔥 Working on:{" "}
+										<span className="font-semibold">
+											{selectedTask.description}
+										</span>
+										<button
+											className="ml-2 w-fit px-2 py-1 text-xs rounded bg-accent hover:bg-red-600"
+											onClick={clearSelectedTask}
+										>
+											Clear
+										</button>
+									</div>
+								)}
 								<Controls />
 							</Vortex>
 						</motion.div>
@@ -207,9 +218,24 @@ export function Pomodoro() {
 							<div className="flex-1 flex justify-center">
 								<Timer />
 							</div>
+							{selectedTask ? (
+								<div className="mt-2 flex-1 text-center text-base text-accent-foreground/80 flex flex-col items-center">
+									🔥 Working on:{" "}
+									<span className="font-semibold">
+										{selectedTask.description}
+									</span>
+									<button
+										className="ml-2 w-fit px-2 py-1 text-xs rounded bg-accent hover:bg-red-600"
+										onClick={clearSelectedTask}
+									>
+										Clear
+									</button>
+								</div>
+							) : (
+								<div className="flex-1" />
+							)}
 
 							{/* Right: Empty space for symmetry */}
-							<div className="flex-1" />
 						</motion.div>
 					)}
 				</AnimatePresence>

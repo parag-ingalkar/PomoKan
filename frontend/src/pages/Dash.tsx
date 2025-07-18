@@ -1,16 +1,11 @@
 import React, { useState, useRef, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { ChevronUp, ChevronDown, Play, Pause, RotateCcw } from "lucide-react";
+import { motion } from "framer-motion";
 import { Kanban } from "@/components/kanban/Kanban";
 import TaskList from "@/components/tasklist/TaskList";
 import EisenhoverMatrix from "@/components/eisenhowermatrix/EisenhoverMatrix";
-// import { Pomodoro } from "@/components/Pomodoro";
 import { Pomodoro } from "@/components/pomodoro/Pomo";
 
 export const DashboardPage = () => {
-	const [isExpanded, setIsExpanded] = useState(false);
-	const [isRunning, setIsRunning] = useState(false);
-	const [timeLeft, setTimeLeft] = useState(25 * 60); // 25 minutes in seconds
 	const [activeTab, setActiveTab] = useState("task-list");
 	const [underlineStyle, setUnderlineStyle] = useState({ left: 0, width: 0 });
 	const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
@@ -25,17 +20,6 @@ export const DashboardPage = () => {
 			content: <EisenhoverMatrix />,
 		},
 	];
-
-	const [expandedHeight, setExpandedHeight] = useState(0);
-	const [collapsedHeight, setCollapsedHeight] = useState(0);
-
-	useEffect(() => {
-		const vh = window.innerHeight;
-		const navbarHeight = 64; // 4rem = 64px
-
-		setExpandedHeight(vh - navbarHeight);
-		setCollapsedHeight((vh - navbarHeight) / 6);
-	}, []);
 
 	// Update underline position when active tab changes
 	useEffect(() => {
@@ -103,23 +87,6 @@ export const DashboardPage = () => {
 	}) =>
 		activeTab === value ? <div className={className}>{children}</div> : null;
 
-	const formatTime = (seconds: number) => {
-		const mins = Math.floor(seconds / 60);
-		const secs = seconds % 60;
-		return `${mins.toString().padStart(2, "0")}:${secs
-			.toString()
-			.padStart(2, "0")}`;
-	};
-
-	const toggleTimer = () => {
-		setIsRunning(!isRunning);
-	};
-
-	const resetTimer = () => {
-		setIsRunning(false);
-		setTimeLeft(25 * 60);
-	};
-
 	return (
 		<div className="relative h-full w-full overflow-hidden">
 			{/* Main content area - fixed height, no animation */}
@@ -169,9 +136,9 @@ export const DashboardPage = () => {
 			</div>
 
 			{/* Pomodoro dock with smooth sliding animation */}
-			{/* <div className="relative h-1/6">
+			<div className="relative h-1/6">
 				<Pomodoro />
-			</div> */}
+			</div>
 		</div>
 	);
 };

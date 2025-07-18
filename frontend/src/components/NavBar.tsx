@@ -5,7 +5,6 @@ import UserMenu from "./navbar-components/user-menu";
 
 const NavBar = () => {
 	const { user } = useAuth();
-	console.log(user);
 
 	return (
 		<div className="flex flex-col h-screen">

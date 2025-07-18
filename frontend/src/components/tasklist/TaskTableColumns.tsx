@@ -1,12 +1,19 @@
 // File: src/components/tasks/TaskTableColumns.tsx
 
-import { type ColumnDef } from "@tanstack/react-table";
+import { type ColumnDef, type FilterFn } from "@tanstack/react-table";
 import { type Todo } from "@/utils/type-todo";
 import { RowActions } from "./RowActions";
 import { Checkbox } from "../ui/checkbox";
-import { usePomodoroStore } from "@/store/pomodoroStore";
-import type { PomodoroState } from "@/store/pomodoroStore";
-import { Button } from "../ui/button";
+
+export const statusFilterFn: FilterFn<Todo> = (
+	row,
+	columnId,
+	filterValue: string[]
+) => {
+	if (!filterValue?.length) return true;
+	const status = row.getValue(columnId) as string;
+	return filterValue.includes(status);
+};
 
 export const TaskTableColumns = (): ColumnDef<Todo>[] => [
 	{
@@ -24,18 +31,38 @@ export const TaskTableColumns = (): ColumnDef<Todo>[] => [
 		cell: ({ row }) => (
 			<Checkbox
 				checked={row.getIsSelected()}
+				onClick={(e) => e.stopPropagation()}
 				onCheckedChange={(value) => row.toggleSelected(!!value)}
 				aria-label="Select row"
 			/>
 		),
 		size: 28,
 		enableSorting: false,
+		enableHiding: false,
+		meta: { align: "center" },
 	},
 	{
 		header: "Description",
 		accessorKey: "description",
-		cell: ({ row }) => <span className="">{row.getValue("description")}</span>,
+		cell: ({ row }) => (
+			<div className="text-start whitespace-normal break-words">
+				{row.getValue("description")}
+			</div>
+		),
 		size: 350,
+		enableHiding: false,
+		meta: { align: "left" },
+	},
+
+	{
+		header: "Importance",
+		accessorKey: "is_important",
+		cell: ({ row }) => {
+			const isUrgent = row.getValue("is_important");
+			return <span>{isUrgent ? "High" : "Low"}</span>;
+		},
+		size: 90,
+		meta: { align: "center" },
 	},
 	{
 		header: "Urgency",
@@ -45,15 +72,7 @@ export const TaskTableColumns = (): ColumnDef<Todo>[] => [
 			return <span>{isUrgent ? "High" : "Low"}</span>;
 		},
 		size: 80,
-	},
-	{
-		header: "Importance",
-		accessorKey: "is_important",
-		cell: ({ row }) => {
-			const isUrgent = row.getValue("is_important");
-			return <span>{isUrgent ? "High" : "Low"}</span>;
-		},
-		size: 90,
+		meta: { align: "center" },
 	},
 	{
 		header: "Status",
@@ -89,20 +108,33 @@ export const TaskTableColumns = (): ColumnDef<Todo>[] => [
 			);
 		},
 		size: 110,
+		filterFn: statusFilterFn,
+		meta: { align: "center" },
 	},
 
 	{
 		header: "Pomodoros",
 		accessorKey: "pomodoro_count",
-		size: 80,
+		size: 60,
+		meta: { align: "center" },
 	},
 	{
 		id: "actions",
 		header: () => <span className="sr-only">Actions</span>,
-		cell: ({ row }) => (
-			<RowActions row={row} />
-		),
+		cell: ({ row }) => <RowActions row={row} />,
 		size: 60,
 		enableHiding: false,
+		meta: { align: "center" },
 	},
 ];
+
+// Export a mapping from column id/accessorKey to header label for use in ColumnVisibility
+export const columnHeaderLabels: Record<string, string> = {
+	select: "Select",
+	description: "Description",
+	is_important: "Importance",
+	is_urgent: "Urgency",
+	status: "Status",
+	pomodoro_count: "Pomodoros",
+	actions: "Actions",
+};

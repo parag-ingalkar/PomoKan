@@ -34,13 +34,7 @@ export function RowActions({ row }: { row: Row<Todo> }) {
 		setEditOpen(true);
 	};
 
-	const handleSave = (updated: Todo) => {
-		updateTodoStore(updated);
-		setEditOpen(false);
-	};
-
 	const handleDelete = () => {
-		console.log("row.original.id", row.original.id);
 		deleteTodoStore(row.original.id);
 		setShowDialog(false);
 	};
@@ -54,10 +48,36 @@ export function RowActions({ row }: { row: Row<Todo> }) {
 					</Button>
 				</DropdownMenuTrigger>
 				<DropdownMenuContent align="end">
-					<DropdownMenuItem onClick={handleEdit}>Edit</DropdownMenuItem>
+					<DropdownMenuItem
+						onClick={(e) => {
+							e.stopPropagation();
+							handleEdit();
+						}}
+					>
+						Edit
+					</DropdownMenuItem>
+					<DropdownMenuItem
+						disabled={row.original.is_completed || row.original.status === "completed"}
+						onClick={async (e) => {
+							e.stopPropagation();
+							if (!row.original.is_completed && row.original.status !== "completed") {
+								await updateTodoStore({
+									...row.original,
+									is_completed: true,
+									status: "completed",
+									completed_at: new Date().toISOString(),
+								});
+							}
+						}}
+					>
+						Mark as Complete
+					</DropdownMenuItem>
 					<DropdownMenuItem
 						className="text-destructive"
-						onClick={() => setShowDialog(true)}
+						onClick={(e) => {
+							e.stopPropagation();
+							setShowDialog(true);
+						}}
 					>
 						Delete
 					</DropdownMenuItem>
@@ -68,22 +88,25 @@ export function RowActions({ row }: { row: Row<Todo> }) {
 				visible={editOpen}
 				onClose={() => setEditOpen(false)}
 				todo={row.original}
-				onSubmit={handleSave}
 			/>
 
 			<AlertDialog open={showDialog} onOpenChange={setShowDialog}>
-				<AlertDialogContent>
-					<AlertDialogHeader>
-						<AlertDialogTitle>Are you sure?</AlertDialogTitle>
-						<AlertDialogDescription>
-							This will permanently delete the task.
-						</AlertDialogDescription>
-					</AlertDialogHeader>
-					<AlertDialogFooter>
-						<AlertDialogCancel>Cancel</AlertDialogCancel>
-						<AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
-					</AlertDialogFooter>
-				</AlertDialogContent>
+				<div onClick={(e) => e.stopPropagation()}>
+					<AlertDialogContent>
+						<AlertDialogHeader>
+							<AlertDialogTitle>Are you sure?</AlertDialogTitle>
+							<AlertDialogDescription>
+								This will permanently delete the task.
+							</AlertDialogDescription>
+						</AlertDialogHeader>
+						<AlertDialogFooter>
+							<AlertDialogCancel>Cancel</AlertDialogCancel>
+							<AlertDialogAction onClick={handleDelete}>
+								Delete
+							</AlertDialogAction>
+						</AlertDialogFooter>
+					</AlertDialogContent>
+				</div>
 			</AlertDialog>
 		</>
 	);

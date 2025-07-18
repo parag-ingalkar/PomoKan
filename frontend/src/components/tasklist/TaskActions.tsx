@@ -12,7 +12,7 @@ import {
 	AlertDialogAction,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { TrashIcon, PlusIcon } from "lucide-react";
+import { TrashIcon, PlusIcon, CircleAlertIcon } from "lucide-react";
 import type { Table } from "@tanstack/react-table";
 import { type Todo } from "@/utils/type-todo";
 import { AddTaskDialog } from "./AddTaskDialog";
@@ -37,28 +37,39 @@ export function TaskActions({ table }: Props) {
 		table.resetRowSelection();
 	};
 
-
 	return (
 		<div className="flex justify-between items-center gap-2">
 			{selectedRows.length > 0 && (
 				<AlertDialog>
 					<AlertDialogTrigger asChild>
-						<Button variant="outline">
-							<TrashIcon className="mr-2" size={16} />
+						<Button variant="outline" className="ml-auto">
+							<TrashIcon className="-ms-1 opacity-60" size={16} />
 							Delete
-							<span className="ml-2 border rounded px-1 text-xs">
+							<span className="-me-1 border text-muted-foreground/70 rounded px-1 text-xs">
 								{selectedRows.length}
 							</span>
 						</Button>
 					</AlertDialogTrigger>
 					<AlertDialogContent>
-						<AlertDialogHeader>
-							<AlertDialogTitle>Are you sure?</AlertDialogTitle>
-							<AlertDialogDescription>
-								This will permanently delete {selectedRows.length}{" "}
-								{selectedRows.length === 1 ? "task" : "tasks"}.
-							</AlertDialogDescription>
-						</AlertDialogHeader>
+						<div className="flex flex-col gap-2 max-sm:items-center sm:flex-row sm:gap-4">
+							<div
+								className="flex size-9 shrink-0 items-center justify-center rounded-full border"
+								aria-hidden="true"
+							>
+								<CircleAlertIcon className="opacity-80" size={16} />
+							</div>
+							<AlertDialogHeader>
+								<AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+								<AlertDialogDescription>
+									This action cannot be undone. This will permanently delete{" "}
+									{table.getSelectedRowModel().rows.length} selected{" "}
+									{table.getSelectedRowModel().rows.length === 1
+										? "row"
+										: "rows"}
+									.
+								</AlertDialogDescription>
+							</AlertDialogHeader>
+						</div>
 						<AlertDialogFooter>
 							<AlertDialogCancel>Cancel</AlertDialogCancel>
 							<AlertDialogAction onClick={handleDelete}>
@@ -69,8 +80,12 @@ export function TaskActions({ table }: Props) {
 				</AlertDialog>
 			)}
 
-			<Button variant="outline" onClick={() => setShowAddTask(true)}>
-				<PlusIcon size={16} />
+			<Button
+				variant="outline"
+				className="ml-auto"
+				onClick={() => setShowAddTask(true)}
+			>
+				<PlusIcon className="-ms-1 opacity-60" size={16} aria-hidden="true" />
 				Add Task
 			</Button>
 

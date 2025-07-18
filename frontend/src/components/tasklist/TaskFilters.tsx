@@ -69,7 +69,11 @@ export function TaskFilters({ table }: Props) {
 			<Popover>
 				<PopoverTrigger asChild>
 					<Button variant="outline">
-						<FilterIcon className="mr-2" size={16} />
+						<FilterIcon
+							className="-ms-1 opacity-60"
+							size={16}
+							aria-hidden="true"
+						/>
 						Status
 						{selectedStatuses.length > 0 && (
 							<span className="ml-2 rounded border px-1 text-xs">
@@ -78,12 +82,8 @@ export function TaskFilters({ table }: Props) {
 						)}
 					</Button>
 				</PopoverTrigger>
-				<PopoverContent className="w-56 p-3" align="start">
+				<PopoverContent className="w-auto min-w-36 p-3" align="start">
 					<div className="space-y-2">
-						<div className="text-xs text-muted-foreground font-medium">
-							Filters
-						</div>
-
 						{uniqueStatusValues.map((value, i) => (
 							<div key={value} className="flex items-center gap-2">
 								<Checkbox

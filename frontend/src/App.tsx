@@ -7,7 +7,6 @@ import {
 import { ThemeProvider } from "./components/theme-provider";
 import RequireAuth from "./components/RequireAuth";
 import HeroPage from "./pages/HeroPage";
-// import { DashboardPage } from "./pages/DashboardPage";
 import { DashboardPage } from "./pages/Dash";
 import NavBar from "./components/NavBar";
 
