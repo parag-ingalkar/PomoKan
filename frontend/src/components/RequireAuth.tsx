@@ -6,7 +6,13 @@ const RequireAuth = () => {
 	const { token } = useAuth();
 	const location = useLocation();
 	if (!token) {
-		return <Navigate to="/" state={{ from: location }} replace />;
+		return (
+			<Navigate
+				to="/"
+				state={{ from: location, message: "Your session has expired. Please log in again." }}
+				replace
+			/>
+		);
 	}
 	// return <>{children}</>;
 	return <Outlet />;

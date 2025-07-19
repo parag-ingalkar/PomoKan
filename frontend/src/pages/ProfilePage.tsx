@@ -1,6 +1,13 @@
 import React, { useState } from 'react';
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import type { User } from '@/utils/type-user';
+import { changePassword } from '../api/userApi';
 import { useAuth } from '../hooks/useAuth';
-import api from '../api/axios';
+import {toast } from 'sonner'
 
 const ProfilePage: React.FC = () => {
   const { user, logout } = useAuth();
@@ -23,47 +30,90 @@ const ProfilePage: React.FC = () => {
     setMsg('');
     setError('');
     try {
-      await api.put('/users/change-password', form);
-      setMsg('Password changed successfully.');
+      await changePassword(form);
+      toast.success('Password changed successfully.');
       setForm({ current_password: '', new_password: '', new_password_confirm: '' });
     } catch {
-      setError('Failed to change password.');
+      toast.error('Failed to change password.');
     } finally {
       setLoading(false);
     }
   };
 
+  // Avatar fallback initials
+  const getInitials = (user: User | null) => {
+    if (!user) return '';
+    return `${user.first_name?.[0] || ''}${user.last_name?.[0] || ''}`;
+  };
+
   return (
-    <div className="p-8 max-w-xl mx-auto">
-      <h1 className="text-3xl font-bold mb-4">User Profile</h1>
-      {user && (
-        <div className="mb-8">
-          <div><span className="font-semibold">Email:</span> {user.email}</div>
-          <div><span className="font-semibold">First Name:</span> {user.first_name}</div>
-          <div><span className="font-semibold">Last Name:</span> {user.last_name}</div>
-        </div>
-      )}
-      <form onSubmit={handleSubmit} className="bg-white p-6 rounded shadow-md">
-        <h2 className="text-xl font-bold mb-4">Change Password</h2>
-        {msg && <div className="mb-2 text-green-600">{msg}</div>}
-        {error && <div className="mb-2 text-red-500">{error}</div>}
-        <div className="mb-3">
-          <label className="block mb-1 font-medium">Current Password</label>
-          <input type="password" name="current_password" className="w-full border rounded px-3 py-2" value={form.current_password} onChange={handleChange} required />
-        </div>
-        <div className="mb-3">
-          <label className="block mb-1 font-medium">New Password</label>
-          <input type="password" name="new_password" className="w-full border rounded px-3 py-2" value={form.new_password} onChange={handleChange} required />
-        </div>
-        <div className="mb-4">
-          <label className="block mb-1 font-medium">Confirm New Password</label>
-          <input type="password" name="new_password_confirm" className="w-full border rounded px-3 py-2" value={form.new_password_confirm} onChange={handleChange} required />
-        </div>
-        <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded font-semibold hover:bg-blue-700 transition" disabled={loading}>
-          {loading ? 'Changing...' : 'Change Password'}
-        </button>
-      </form>
-      <button onClick={logout} className="mt-8 text-red-600 hover:underline">Logout</button>
+    <div className="container mx-auto p-6 max-w-2xl h-full flex flex-col overflow-hidden">
+      <div className="mb-8 flex flex-col items-center gap-2">
+        <Avatar className="size-10">
+          <AvatarImage src="/avatar.jpg" alt="Profile image" />
+          <AvatarFallback>{getInitials(user)}</AvatarFallback>
+        </Avatar>
+        <h1 className="text-3xl font-bold">User Profile</h1>
+        {user && (
+          <div className="flex flex-col items-center gap-1">
+            <span className="text-foreground text-base font-medium">{user.first_name} {user.last_name}</span>
+            <span className="text-muted-foreground text-sm">{user.email}</span>
+          </div>
+        )}
+      </div>
+      <Card className="w-full max-w-sm mx-auto">
+        <CardHeader>
+          <CardTitle>Change Password</CardTitle>
+        </CardHeader>
+        <form onSubmit={handleSubmit}>
+          <CardContent className="flex flex-col gap-3">
+            <div className="grid gap-2">
+              <Label htmlFor="current_password">Current Password</Label>
+              <Input
+                id="current_password"
+                name="current_password"
+                type="password"
+                value={form.current_password}
+                onChange={handleChange}
+                required
+                autoComplete="current-password"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="new_password">New Password</Label>
+              <Input
+                id="new_password"
+                name="new_password"
+                type="password"
+                value={form.new_password}
+                onChange={handleChange}
+                required
+                autoComplete="new-password"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="new_password_confirm">Confirm New Password</Label>
+              <Input
+                id="new_password_confirm"
+                name="new_password_confirm"
+                type="password"
+                value={form.new_password_confirm}
+                onChange={handleChange}
+                required
+                autoComplete="new-password"
+              />
+            </div>
+          </CardContent>
+          <CardFooter className="flex-col gap-2 pt-4">
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? 'Changing...' : 'Change Password'}
+            </Button>
+            <Button type="button" variant="destructive" className="w-full mt-2" onClick={logout}>
+              Logout
+            </Button>
+          </CardFooter>
+        </form>
+      </Card>
     </div>
   );
 };

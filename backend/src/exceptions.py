@@ -17,7 +17,7 @@ class InvalidPasswordError(UserError):
         super().__init__(status_code=401, detail="Current password is incorrect")
 
 class AuthenticationError(HTTPException):
-    def __init__(self, message: str = "Could not validate user"):
+    def __init__(self, message: str = "Invalid Email or Password"):
         super().__init__(status_code=401, detail=message)
 
 class TodoError(HTTPException):

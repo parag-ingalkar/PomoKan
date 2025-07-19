@@ -51,7 +51,7 @@ export default function UserMenu({ user }: UserMenuProps) {
 						<Settings size={16} className="opacity-60" aria-hidden="true" />
 						<span>Settings</span>
 					</DropdownMenuItem>
-					<DropdownMenuItem>
+					<DropdownMenuItem onClick={() => navigate("/profile")}>
 						<UserPenIcon size={16} className="opacity-60" aria-hidden="true" />
 						<span>Change Password</span>
 					</DropdownMenuItem>

@@ -17,3 +17,17 @@ export const loginUser = async (email: string, password: string) => {
 		});
   return res.data;
 };
+
+export const changePassword = async (form: {
+  current_password: string;
+  new_password: string;
+  new_password_confirm: string;
+}) => {
+  const response = await api.put("/users/change-password", form);
+  return response.data;
+};
+
+export const logout = () => {
+  localStorage.removeItem("token");
+  window.location.href = "/";
+};

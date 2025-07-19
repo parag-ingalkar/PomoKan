@@ -11,8 +11,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
+// import type { AxiosError } from "axios";
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { toast } from "sonner";
+import { AxiosError } from "axios";
 
 export const SignInSignUpCard = () => {
 	const { login } = useAuth();
@@ -27,6 +30,11 @@ export const SignInSignUpCard = () => {
 	const [loading, setLoading] = useState(false);
 
 	const toggleSignIn = () => {
+		setEmail("");
+		setFirstName("");
+		setLastName("");
+		setPassword("");
+		setError("");
 		setIsSignIn(!isSignIn);
 	};
 
@@ -48,17 +56,22 @@ export const SignInSignUpCard = () => {
 				await login(email, password); // Assuming your useAuth handles token decoding/state
 				navigate("/dashboard");
 			} catch (err) {
-				console.error(err);
-				setError("Invalid email or password");
+				toast.error("Login failed. Try again.");
+			  
 			} finally {
 				setLoading(false);
 			}
 		} else {
 			try {
 				await registerUser(user);
+				toast.success("Registration successful! Please log in.");
 				setIsSignIn(true); // After successful registration, switch to login
+				setEmail("");
+				setFirstName("");
+				setLastName("");
+				setPassword("");
 			} catch (err) {
-				console.error(err);
+				toast.error("Registration failed. Try again.");
 				setError("Registration failed. Try again.");
 			} finally {
 				setLoading(false);
@@ -88,6 +101,7 @@ export const SignInSignUpCard = () => {
 								type="email"
 								placeholder="your.email@example.com"
 								onChange={(e) => setEmail(e.target.value)}
+								value={email}
 								required
 							/>
 						</div>
@@ -100,6 +114,7 @@ export const SignInSignUpCard = () => {
 										type="first-name"
 										placeholder="Enter you First Name"
 										onChange={(e) => setFirstName(e.target.value)}
+										value={firstName}
 										required
 									/>
 								</div>
@@ -110,6 +125,7 @@ export const SignInSignUpCard = () => {
 										type="last-name"
 										placeholder="Enter you Last Name"
 										onChange={(e) => setLastName(e.target.value)}
+										value={lastName}
 										required
 									/>
 								</div>
@@ -123,14 +139,16 @@ export const SignInSignUpCard = () => {
 								id="password"
 								type="password"
 								onChange={(e) => setPassword(e.target.value)}
+								value={password}
 								required
 							/>
 						</div>
 					</div>
+					
 				</CardContent>
 				<CardFooter className="mt-6">
-					<Button type="submit" className="w-full">
-						{isSignIn ? "Login" : "Register"}
+					<Button type="submit" className="w-full" disabled={loading}>
+						{loading ? (isSignIn ? "Logging in..." : "Registering...") : (isSignIn ? "Login" : "Register")}
 					</Button>
 				</CardFooter>
 			</form>

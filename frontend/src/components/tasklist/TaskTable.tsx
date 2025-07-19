@@ -12,7 +12,7 @@ import {
 	type VisibilityState,
 	getFacetedUniqueValues,
 } from "@tanstack/react-table";
-import { useMemo, useState, useId } from "react";
+import { useState } from "react";
 import { TaskTableColumns } from "./TaskTableColumns";
 
 // Extend ColumnMeta to include 'align'
@@ -24,7 +24,6 @@ declare module "@tanstack/react-table" {
 import { TaskFilters } from "./TaskFilters";
 import { TaskActions } from "./TaskActions";
 import { type Todo } from "@/utils/type-todo";
-import { useTodosStore } from "@/store/todosStore";
 import { usePomodoroStore } from "@/store/pomodoroStore";
 import type { PomodoroState } from "@/store/pomodoroStore";
 import { cn } from "@/lib/utils";
@@ -40,27 +39,8 @@ import {
 import {
 	ChevronUpIcon,
 	ChevronDownIcon,
-	ChevronFirstIcon,
-	ChevronLastIcon,
-	ChevronLeftIcon,
-	ChevronRightIcon,
 } from "lucide-react";
-import {
-	Pagination,
-	PaginationContent,
-	PaginationItem,
-} from "../ui/pagination";
-import {
-	SelectTrigger,
-	SelectValue,
-	SelectContent,
-	SelectItem,
-} from "../ui/select";
-// import type { Label, Select } from "radix-ui";
-// import  { Button } from "react-day-picker";
-import { Button } from "../ui/button";
-import { Label } from "../ui/label";
-import { Select } from "../ui/select";
+
 import { ColumnVisibility } from "./ColumnVisibility";
 import { PaginationControls } from "./PaginationControls";
 
@@ -69,7 +49,6 @@ type Props = {
 };
 
 export function TaskTable({ todos }: Props) {
-	const id = useId();
 
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 	const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});

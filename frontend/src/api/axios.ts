@@ -24,7 +24,7 @@ api.interceptors.response.use(
   (error) => {
     if (error.response && error.response.status === 401) {
       localStorage.removeItem("token");
-      window.location.href = "/"; // Force redirect to HeroPage
+      // window.location.href = "/"; // Remove this redirect
     }
     return Promise.reject(error);
   }
