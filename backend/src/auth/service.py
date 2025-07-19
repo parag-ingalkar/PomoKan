@@ -12,11 +12,15 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from src.entities.user import User
 from . import models
 from ..exceptions import AuthenticationError
+import os
+from dotenv import load_dotenv
 
+load_dotenv()
 
-SECRET_KEY = '201b2c37c391bed93fe81344fe73b806947b65e36206e05a1a23c094fm90fe9'
-ALGORITHM = 'HS256'
-ACCESS_TOKEN_EXPIRE_MINUTES = 120
+SECRET_KEY = os.getenv("SECRET_KEY")
+ALGORITHM = os.getenv("ALGORITHM")
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES"))
+
 
 oauth2_bearer = OAuth2PasswordBearer(tokenUrl='auth/token')
 bcrypt_context = CryptContext(schemes=['bcrypt'], deprecated='auto')

@@ -15,6 +15,10 @@ CORS_ORIGIN = os.getenv("CORS_ORIGIN")
 
 app = FastAPI()
 
+@app.get("/")
+def health_check():
+    return {"status": "ok"}
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=CORS_ORIGIN,
