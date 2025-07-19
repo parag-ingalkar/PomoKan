@@ -29,5 +29,4 @@ export const changePassword = async (form: {
 
 export const logout = () => {
   localStorage.removeItem("token");
-  window.location.href = "/";
 };

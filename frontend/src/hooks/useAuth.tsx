@@ -1,7 +1,7 @@
 import { useState, useEffect, createContext, useContext } from "react";
 import type { ReactNode } from "react";
 import api from "../api/axios";
-import { loginUser } from "@/api/userApi";
+import { loginUser, logout as logoutUser } from "@/api/userApi";
 import type { User } from "@/utils/type-user";
 
 interface AuthContextType {
@@ -41,9 +41,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
 	};
 
 	const logout = () => {
+		localStorage.setItem("manualLogout", "true");
+		logoutUser();
 		setToken(null);
 		setUser(null);
-		localStorage.removeItem("token");
 	};
 
 	return (

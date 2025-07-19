@@ -6,6 +6,10 @@ const RequireAuth = () => {
 	const { token } = useAuth();
 	const location = useLocation();
 	if (!token) {
+		if (localStorage.getItem("manualLogout")) {
+			localStorage.removeItem("manualLogout");
+			return <Navigate to="/" replace />;
+		}
 		return (
 			<Navigate
 				to="/"

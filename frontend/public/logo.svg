@@ -1,0 +1,22 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="200" height="200" rx="40" fill="#2E3A59"/>
+  <g transform="translate(30, 30)">
+    <!-- Clock Circle -->
+    <circle cx="70" cy="70" r="40" stroke="#FF6B6B" stroke-width="6" fill="none"/>
+    <!-- Clock Hands -->
+    <line x1="70" y1="70" x2="70" y2="45" stroke="#FF6B6B" stroke-width="4" stroke-linecap="round"/>
+    <line x1="70" y1="70" x2="90" y2="70" stroke="#FF6B6B" stroke-width="4" stroke-linecap="round"/>
+    <!-- Checkmark -->
+    <polyline points="20,110 35,125 60,100" stroke="#4ECDC4" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- Kanban Board -->
+    <rect x="100" y="10" width="10" height="50" fill="#FFE66D" rx="2"/>
+    <rect x="115" y="10" width="10" height="35" fill="#FFE66D" rx="2"/>
+    <rect x="130" y="10" width="10" height="60" fill="#FFE66D" rx="2"/>
+    <!-- Eisenhower Matrix -->
+    <rect x="100" y="80" width="40" height="40" stroke="#A29BFE" stroke-width="4" fill="none"/>
+    <line x1="120" y1="80" x2="120" y2="120" stroke="#A29BFE" stroke-width="4"/>
+    <line x1="100" y1="100" x2="140" y2="100" stroke="#A29BFE" stroke-width="4"/>
+  </g>
+  <!-- App Name -->
+  <text x="100" y="185" font-size="20" text-anchor="middle" fill="#FFFFFF" font-family="Arial, sans-serif">Pomokan</text>
+</svg>

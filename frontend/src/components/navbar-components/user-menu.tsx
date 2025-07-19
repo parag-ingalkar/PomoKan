@@ -1,4 +1,4 @@
-import { LogOutIcon, UserPenIcon, Settings, LogOut } from "lucide-react";
+import { LogOutIcon, UserPenIcon, Settings } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
