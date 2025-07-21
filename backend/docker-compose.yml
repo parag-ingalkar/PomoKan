@@ -1,0 +1,17 @@
+version: "3.9"
+
+services:
+  backend:
+    build: .
+    container_name: pomokan-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app                # Mount your code for live reload (dev only, optional)
+      - ./.env:/app/.env      # Mount .env file
+      - ./todoapp.db:/app/todoapp.db  # Persist SQLite DB (optional, for dev)
+    environment:
+      - PYTHONUNBUFFERED=1
+    command: >
+      sh -c "uv run alembic upgrade head && uv run uvicorn src.main:app --port 8000 --host 0.0.0.0"
+    # If you want to run migrations only once, remove the alembic part from command above

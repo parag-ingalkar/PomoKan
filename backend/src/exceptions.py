@@ -32,3 +32,7 @@ class TodoCreationError(TodoError):
     def __init__(self, error: str):
         message = f"Failed to create Todo: {error}"
         super().__init__(status_code= 500, detail=message)
+
+class RefreshTokenError(HTTPException):
+    def __init__(self, message: str = "Invalid or expired refresh token"):
+        super().__init__(status_code=401, detail=message)

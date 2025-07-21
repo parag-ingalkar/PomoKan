@@ -4,6 +4,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session, declarative_base
 import os
 from dotenv import load_dotenv
+# from src.entities.user import User, RefreshToken
 
 load_dotenv()
 
