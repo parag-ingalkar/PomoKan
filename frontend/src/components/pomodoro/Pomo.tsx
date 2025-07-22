@@ -17,7 +17,12 @@ type Mode = "pomodoro" | "short-break" | "long-break";
 export function Pomodoro() {
 	const [expanded, setExpanded] = useState(false);
 	const audioRef = useRef<HTMLAudioElement>(null);
-	const { selectedAudio, pomodoroDuration, shortBreakDuration, longBreakDuration } = useSettingsStore();
+	const {
+		selectedAudio,
+		pomodoroDuration,
+		shortBreakDuration,
+		longBreakDuration,
+	} = useSettingsStore();
 	const {
 		selectedTask,
 		clearSelectedTask,
@@ -28,14 +33,14 @@ export function Pomodoro() {
 		setMode,
 		incrementPomodoro,
 	} = usePomodoroStore();
-	
+
 	// Create MODE_TIMES dynamically using settings
 	const MODE_TIMES: Record<Mode, number> = {
 		pomodoro: pomodoroDuration * 60, // Convert minutes to seconds
 		"short-break": shortBreakDuration * 60,
 		"long-break": longBreakDuration * 60,
 	};
-	
+
 	const [timeLeft, setTimeLeft] = useState(MODE_TIMES[mode as Mode]);
 	const [collapsedHeight, setCollapsedHeight] = useState(0);
 	const [pomodoroCount, setPomodoroCount] = useState(0); // Track completed pomodoros
@@ -57,7 +62,13 @@ export function Pomodoro() {
 	useEffect(() => {
 		setTimeLeft(MODE_TIMES[mode as Mode]);
 		setIsRunning(false);
-	}, [mode, setIsRunning, pomodoroDuration, shortBreakDuration, longBreakDuration]);
+	}, [
+		mode,
+		setIsRunning,
+		pomodoroDuration,
+		shortBreakDuration,
+		longBreakDuration,
+	]);
 
 	// Timer countdown effect
 	useEffect(() => {
@@ -70,18 +81,17 @@ export function Pomodoro() {
 					console.log("Audio playback failed:", error);
 				});
 			}
-			
+
 			setIsRunning(false);
 			if (mode === "pomodoro") {
 				// Only increment pomodoro count if mode is 'pomodoro'
 				if (selectedTask) {
-					incrementPomodoro(selectedTask.id)
-						.then((updated: Todo | null) => {
-							if (updated) {
-								setLastUpdatedTask(updated);
-								updateTodo(updated);
-							}
-						});
+					incrementPomodoro(selectedTask.id).then((updated: Todo | null) => {
+						if (updated) {
+							setLastUpdatedTask(updated);
+							updateTodo(updated);
+						}
+					});
 				}
 				// Switch to short-break or long-break after pomodoro
 				if ((pomodoroCount + 1) % 4 === 0) {
@@ -102,7 +112,7 @@ export function Pomodoro() {
 		}, 1000);
 
 		return () => clearInterval(interval);
-	}, [timeLeft, isRunning]);
+	}, [isRunning, timeLeft, mode, selectedTask, pomodoroCount]);
 
 	const formatTime = (seconds: number) => {
 		const mins = Math.floor(seconds / 60);
@@ -174,8 +184,12 @@ export function Pomodoro() {
 			className="fixed bottom-0 left-0 w-full bg-background border-t border-border shadow-lg overflow-hidden z-50"
 		>
 			{/* Audio element for timer completion sound */}
-			<audio ref={audioRef} src={`/audio/${selectedAudio}.mp3`} preload="auto" />
-			
+			<audio
+				ref={audioRef}
+				src={`/audio/${selectedAudio}.mp3`}
+				preload="auto"
+			/>
+
 			<div className="h-full w-full ">
 				<AnimatePresence mode="wait">
 					{expanded ? (

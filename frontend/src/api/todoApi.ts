@@ -39,7 +39,22 @@ export const deleteMultipleTodos = async (todoIds: string[]): Promise<void> => {
 };
 
 // Increment pomodoro count for a todo
-export const incrementPomodoro = async (id: string): Promise<Todo> => {
-  const res = await api.put<Todo>(`/todos/${id}/increment-pomodoro`);
-  return res.data;
+export const incrementPomodoro = async (id: string, retries: number = 2): Promise<Todo | null> => {
+  try {
+    const res = await api.put<Todo>(`/todos/${id}/increment-pomodoro`);
+    return res.data;
+  } catch (error: any) {
+    console.error("Error incrementing pomodoro:", error);
+    
+    // If it's a 503 (service unavailable) and we have retries left, try again
+    if (error.response?.status === 503 && retries > 0) {
+      console.log(`Retrying... ${retries} attempts remaining`);
+      // Wait 2 seconds before retrying
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      return incrementPomodoro(id, retries - 1);
+    }
+    
+    // For other errors or no retries left, return null
+    return null;
+  }
 };
