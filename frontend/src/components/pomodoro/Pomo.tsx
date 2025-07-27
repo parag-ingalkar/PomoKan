@@ -73,45 +73,22 @@ export function Pomodoro() {
 		longBreakDuration,
 	]);
 
-	// Sleep detection effect
+	// Sleep detection effect - simplified since we now use absolute time
 	useEffect(() => {
 		const handleVisibilityChange = () => {
 			if (!document.hidden && isRunning && timerStartTimeRef.current) {
-				const now = Date.now();
-				const expectedElapsed = now - lastActiveTimeRef.current;
-
-				// If more than 2 seconds have passed since last update, system likely went to sleep
-				if (expectedElapsed > 2000) {
-					const actualElapsed = now - timerStartTimeRef.current;
-					const expectedTimeLeft =
-						MODE_TIMES[mode as Mode] - Math.floor(actualElapsed / 1000);
-
-					console.log(
-						`System sleep detected. Adjusting timer from ${timeLeft}s to ${Math.max(
-							0,
-							expectedTimeLeft
-						)}s`
-					);
-					setTimeLeft(Math.max(0, expectedTimeLeft));
-				}
+				console.log(
+					"System wake detected - timer will auto-correct on next update"
+				);
 			}
 			lastActiveTimeRef.current = Date.now();
 		};
 
 		const handleFocus = () => {
 			if (isRunning && timerStartTimeRef.current) {
-				const now = Date.now();
-				const actualElapsed = now - timerStartTimeRef.current;
-				const expectedTimeLeft =
-					MODE_TIMES[mode as Mode] - Math.floor(actualElapsed / 1000);
-
 				console.log(
-					`Window focus detected. Adjusting timer to ${Math.max(
-						0,
-						expectedTimeLeft
-					)}s`
+					"Window focus detected - timer will auto-correct on next update"
 				);
-				setTimeLeft(Math.max(0, expectedTimeLeft));
 			}
 			lastActiveTimeRef.current = Date.now();
 		};
@@ -119,80 +96,61 @@ export function Pomodoro() {
 		document.addEventListener("visibilitychange", handleVisibilityChange);
 		window.addEventListener("focus", handleFocus);
 
-		// Update last active time periodically when timer is running
-		const interval = setInterval(() => {
-			if (isRunning) {
-				lastActiveTimeRef.current = Date.now();
-			}
-		}, 1000);
-
 		return () => {
 			document.removeEventListener("visibilitychange", handleVisibilityChange);
 			window.removeEventListener("focus", handleFocus);
-			clearInterval(interval);
 		};
-	}, [isRunning, timeLeft, mode, MODE_TIMES]);
+	}, [isRunning]);
 
-	// Database warming effect - warm up DB 2 minutes before timer ends (optional)
+	// Timer countdown effect - using absolute time for accuracy
 	useEffect(() => {
-		if (!isRunning || mode !== "pomodoro" || !selectedTask) return;
-
-		// Warm up database 2 minutes before timer ends
-		if (timeLeft === 120) {
-			// 2 minutes = 120 seconds
-			console.log("Warming up database before pomodoro completion...");
-			api.get("/health/db").catch((error) => {
-				console.warn(
-					"Database warm-up failed (this is okay, retry logic will handle it):",
-					error
-				);
-			});
-		}
-	}, [isRunning, timeLeft, mode, selectedTask]);
-
-	// Timer countdown effect
-	useEffect(() => {
-		if (!isRunning) return;
-
-		if (timeLeft === 0) {
-			// Play audio when timer hits 0
-			if (audioRef.current) {
-				audioRef.current.play().catch((error) => {
-					console.log("Audio playback failed:", error);
-				});
-			}
-
-			setIsRunning(false);
-			if (mode === "pomodoro") {
-				// Only increment pomodoro count if mode is 'pomodoro'
-				if (selectedTask) {
-					incrementPomodoro(selectedTask.id).then((updated: Todo | null) => {
-						if (updated) {
-							setLastUpdatedTask(updated);
-							updateTodo(updated);
-						}
-					});
-				}
-				// Switch to short-break or long-break after pomodoro
-				if ((pomodoroCount + 1) % 4 === 0) {
-					setMode("long-break");
-				} else {
-					setMode("short-break");
-				}
-				setPomodoroCount((count) => count + 1);
-			} else if (mode === "short-break" || mode === "long-break") {
-				// After any break, switch back to pomodoro
-				setMode("pomodoro");
-			}
-			return;
-		}
+		if (!isRunning || !timerStartTimeRef.current) return;
 
 		const interval = setInterval(() => {
-			setTimeLeft((time: number) => time - 1);
-		}, 1000);
+			const now = Date.now();
+			const elapsed = Math.floor((now - timerStartTimeRef.current!) / 1000);
+			const remaining = Math.max(0, MODE_TIMES[mode as Mode] - elapsed);
+
+			setTimeLeft(remaining);
+
+			// Timer completed
+			if (remaining === 0) {
+				// Play audio when timer hits 0
+				if (audioRef.current) {
+					audioRef.current.play().catch((error) => {
+						console.log("Audio playback failed:", error);
+					});
+				}
+
+				setIsRunning(false);
+				timerStartTimeRef.current = null;
+
+				if (mode === "pomodoro") {
+					// Only increment pomodoro count if mode is 'pomodoro'
+					if (selectedTask) {
+						incrementPomodoro(selectedTask.id).then((updated: Todo | null) => {
+							if (updated) {
+								setLastUpdatedTask(updated);
+								updateTodo(updated);
+							}
+						});
+					}
+					// Switch to short-break or long-break after pomodoro
+					if ((pomodoroCount + 1) % 4 === 0) {
+						setMode("long-break");
+					} else {
+						setMode("short-break");
+					}
+					setPomodoroCount((count) => count + 1);
+				} else if (mode === "short-break" || mode === "long-break") {
+					// After any break, switch back to pomodoro
+					setMode("pomodoro");
+				}
+			}
+		}, 100); // Update every 100ms for smoother display, but calculate based on absolute time
 
 		return () => clearInterval(interval);
-	}, [isRunning, timeLeft, mode, selectedTask, pomodoroCount]);
+	}, [isRunning, mode, selectedTask, pomodoroCount, MODE_TIMES]);
 
 	const formatTime = (seconds: number) => {
 		const mins = Math.floor(seconds / 60);
@@ -204,10 +162,17 @@ export function Pomodoro() {
 
 	const toggleTimer = () => {
 		if (!isRunning) {
-			// Starting the timer
-			timerStartTimeRef.current =
-				Date.now() - (MODE_TIMES[mode as Mode] - timeLeft) * 1000;
+			// Starting the timer - calculate start time based on current timeLeft
+			const elapsedSeconds = MODE_TIMES[mode as Mode] - timeLeft;
+			timerStartTimeRef.current = Date.now() - elapsedSeconds * 1000;
 			lastActiveTimeRef.current = Date.now();
+			console.log(
+				`Timer started. Mode: ${mode}, Duration: ${
+					MODE_TIMES[mode as Mode]
+				}s, Remaining: ${timeLeft}s`
+			);
+		} else {
+			console.log(`Timer paused at ${timeLeft}s remaining`);
 		}
 		setIsRunning(!isRunning);
 	};
