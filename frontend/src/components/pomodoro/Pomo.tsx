@@ -17,6 +17,8 @@ type Mode = "pomodoro" | "short-break" | "long-break";
 export function Pomodoro() {
 	const [expanded, setExpanded] = useState(false);
 	const audioRef = useRef<HTMLAudioElement>(null);
+	const lastActiveTimeRef = useRef<number>(Date.now());
+	const timerStartTimeRef = useRef<number | null>(null);
 	const {
 		selectedAudio,
 		pomodoroDuration,
@@ -62,6 +64,7 @@ export function Pomodoro() {
 	useEffect(() => {
 		setTimeLeft(MODE_TIMES[mode as Mode]);
 		setIsRunning(false);
+		timerStartTimeRef.current = null;
 	}, [
 		mode,
 		setIsRunning,
@@ -70,7 +73,67 @@ export function Pomodoro() {
 		longBreakDuration,
 	]);
 
-	// Database warming effect - warm up DB 2 minutes before timer ends
+	// Sleep detection effect
+	useEffect(() => {
+		const handleVisibilityChange = () => {
+			if (!document.hidden && isRunning && timerStartTimeRef.current) {
+				const now = Date.now();
+				const expectedElapsed = now - lastActiveTimeRef.current;
+
+				// If more than 2 seconds have passed since last update, system likely went to sleep
+				if (expectedElapsed > 2000) {
+					const actualElapsed = now - timerStartTimeRef.current;
+					const expectedTimeLeft =
+						MODE_TIMES[mode as Mode] - Math.floor(actualElapsed / 1000);
+
+					console.log(
+						`System sleep detected. Adjusting timer from ${timeLeft}s to ${Math.max(
+							0,
+							expectedTimeLeft
+						)}s`
+					);
+					setTimeLeft(Math.max(0, expectedTimeLeft));
+				}
+			}
+			lastActiveTimeRef.current = Date.now();
+		};
+
+		const handleFocus = () => {
+			if (isRunning && timerStartTimeRef.current) {
+				const now = Date.now();
+				const actualElapsed = now - timerStartTimeRef.current;
+				const expectedTimeLeft =
+					MODE_TIMES[mode as Mode] - Math.floor(actualElapsed / 1000);
+
+				console.log(
+					`Window focus detected. Adjusting timer to ${Math.max(
+						0,
+						expectedTimeLeft
+					)}s`
+				);
+				setTimeLeft(Math.max(0, expectedTimeLeft));
+			}
+			lastActiveTimeRef.current = Date.now();
+		};
+
+		document.addEventListener("visibilitychange", handleVisibilityChange);
+		window.addEventListener("focus", handleFocus);
+
+		// Update last active time periodically when timer is running
+		const interval = setInterval(() => {
+			if (isRunning) {
+				lastActiveTimeRef.current = Date.now();
+			}
+		}, 1000);
+
+		return () => {
+			document.removeEventListener("visibilitychange", handleVisibilityChange);
+			window.removeEventListener("focus", handleFocus);
+			clearInterval(interval);
+		};
+	}, [isRunning, timeLeft, mode, MODE_TIMES]);
+
+	// Database warming effect - warm up DB 2 minutes before timer ends (optional)
 	useEffect(() => {
 		if (!isRunning || mode !== "pomodoro" || !selectedTask) return;
 
@@ -79,7 +142,10 @@ export function Pomodoro() {
 			// 2 minutes = 120 seconds
 			console.log("Warming up database before pomodoro completion...");
 			api.get("/health/db").catch((error) => {
-				console.warn("Database warm-up failed:", error);
+				console.warn(
+					"Database warm-up failed (this is okay, retry logic will handle it):",
+					error
+				);
 			});
 		}
 	}, [isRunning, timeLeft, mode, selectedTask]);
@@ -137,12 +203,19 @@ export function Pomodoro() {
 	};
 
 	const toggleTimer = () => {
+		if (!isRunning) {
+			// Starting the timer
+			timerStartTimeRef.current =
+				Date.now() - (MODE_TIMES[mode as Mode] - timeLeft) * 1000;
+			lastActiveTimeRef.current = Date.now();
+		}
 		setIsRunning(!isRunning);
 	};
 
 	const resetTimer = () => {
 		setIsRunning(false);
 		setTimeLeft(MODE_TIMES[mode as Mode]);
+		timerStartTimeRef.current = null;
 	};
 
 	// const onSelectMode = (newMode: Mode) => {

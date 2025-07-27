@@ -15,6 +15,15 @@ CORS_ORIGIN = os.getenv("CORS_ORIGIN")
 
 app = FastAPI()
 
+# Add CORS middleware first
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=CORS_ORIGIN,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"]
+)
+
 @app.get("/")
 def health_check():
     return {"status": "ok"}
@@ -30,14 +39,6 @@ def database_health_check():
         return {"status": "ok", "database": "connected"}
     except Exception as e:
         raise HTTPException(status_code=503, detail=f"Database unavailable: {str(e)}")
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=CORS_ORIGIN,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"]
-)
 
 
 register_routes(app)
