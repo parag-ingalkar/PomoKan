@@ -2,7 +2,6 @@ import {
 	BrowserRouter as Router,
 	Routes,
 	Route,
-	Navigate,
 } from "react-router-dom";
 import { ThemeProvider } from "./components/theme-provider";
 import RequireAuth from "./components/RequireAuth";
@@ -10,6 +9,7 @@ import HeroPage from "./pages/HeroPage";
 import { DashboardPage } from "./pages/Dash";
 import SettingsPage from "./pages/SettingsPage";
 import ProfilePage from "./pages/ProfilePage";
+import NotFoundPage from "./pages/NotFoundPage";
 import NavBar from "./components/NavBar";
 import { Toaster } from 'sonner'
 
@@ -27,7 +27,7 @@ function App() {
 							<Route path="/profile" element={<ProfilePage />} />
 						</Route>
 					</Route>
-					<Route path="*" element={<Navigate to="/hero" />} />
+					<Route path="*" element={<NotFoundPage />} />
 				</Routes>
 			</Router>
 		</ThemeProvider>
