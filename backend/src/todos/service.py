@@ -61,21 +61,38 @@ def increment_pomodoro_count(current_user: TokenData, db: Session, todo_id: UUID
     if todo.is_completed:
         logging.debug(f"Todo {todo_id} is already completed")
         return todo
-    try:
-        todo.pomodoro_count += 1
-        db.commit()
-        db.refresh(todo)
-        logging.info(f"Todo {todo_id} incremented pomodoro count by user {current_user.get_uuid()}")
-        return todo
-    except OperationalError as e:
-        db.rollback()
-        if "SSL connection has been closed" in str(e):
-            logging.error(f"Failed to increment pomodoro count for todo {todo_id}. Error: {str(e)}")
-            raise HTTPException(status_code=503, detail="Databse temporary unavailable")
-        raise
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(status_code=500, detail="Internal server error")
+
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            todo.pomodoro_count += 1
+            db.commit()
+            db.refresh(todo)
+            logging.info(f"Todo {todo_id} incremented pomodoro count by user {current_user.get_uuid()}")
+            return todo
+        except OperationalError as e:
+            db.rollback()
+            error_msg = str(e).lower()
+            if any(keyword in error_msg for keyword in ["ssl connection", "connection", "timeout", "server closed"]):
+                logging.warning(f"Database connection issue on attempt {attempt + 1}/{max_retries} for todo {todo_id}: {str(e)}")
+                if attempt < max_retries - 1:
+                    # Wait before retry, with exponential backoff
+                    import time
+                    time.sleep(2 ** attempt)  # 1s, 2s, 4s
+                    # Get fresh todo object for retry
+                    todo = get_todo_by_id(current_user, todo_id, db)
+                    continue
+                else:
+                    logging.error(f"Failed to increment pomodoro count for todo {todo_id} after {max_retries} attempts")
+                    raise HTTPException(status_code=503, detail="Database temporarily unavailable. Please try again.")
+            else:
+                # Non-connection related error, don't retry
+                logging.error(f"Non-connection error incrementing pomodoro count for todo {todo_id}: {str(e)}")
+                raise HTTPException(status_code=500, detail="Internal server error")
+        except Exception as e:
+            db.rollback()
+            logging.error(f"Unexpected error incrementing pomodoro count for todo {todo_id}: {str(e)}")
+            raise HTTPException(status_code=500, detail="Internal server error")
 
 def delete_todo(current_user: TokenData, db: Session, todo_id: UUID) -> None:
     todo = get_todo_by_id(current_user, todo_id, db)

@@ -40,7 +40,7 @@ api.interceptors.response.use(
     const originalRequest = error.config;
 
     // If the error is 401 and we haven't already tried to refresh the token
-    if (error.response.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && !originalRequest._retry) {
       if (isRefreshing) {
         // If we're already refreshing the token, queue the request
         return new Promise((resolve, reject) => {
@@ -77,7 +77,7 @@ api.interceptors.response.use(
               processQueue(new Error('Failed to refresh token'));
               localStorage.removeItem('token');
               localStorage.removeItem('refresh_token');
-              window.location.href = '/login';
+              window.location.href = '/';
               reject(error);
             }
           })
@@ -85,7 +85,7 @@ api.interceptors.response.use(
             processQueue(err);
             localStorage.removeItem('token');
             localStorage.removeItem('refresh_token');
-            window.location.href = '/login';
+            window.location.href = '/';
             reject(error);
           })
           .finally(() => {

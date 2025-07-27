@@ -39,22 +39,28 @@ export const deleteMultipleTodos = async (todoIds: string[]): Promise<void> => {
 };
 
 // Increment pomodoro count for a todo
-export const incrementPomodoro = async (id: string, retries: number = 2): Promise<Todo | null> => {
+export const incrementPomodoro = async (id: string, retries: number = 3): Promise<Todo | null> => {
+  const maxRetries = 3;
+  const currentAttempt = maxRetries - retries + 1;
+
   try {
+    console.log(`Attempting to increment pomodoro count (attempt ${currentAttempt}/${maxRetries})...`);
     const res = await api.put<Todo>(`/todos/${id}/increment-pomodoro`);
+    console.log("Successfully incremented pomodoro count");
     return res.data;
   } catch (error: any) {
-    console.error("Error incrementing pomodoro:", error);
-    
-    // If it's a 503 (service unavailable) and we have retries left, try again
-    if (error.response?.status === 503 && retries > 0) {
-      console.log(`Retrying... ${retries} attempts remaining`);
-      // Wait 2 seconds before retrying
-      await new Promise(resolve => setTimeout(resolve, 2000));
+    console.error(`Error incrementing pomodoro (attempt ${currentAttempt}/${maxRetries}):`, error);
+
+    // If it's a 503 (service unavailable) or connection error and we have retries left
+    if ((error.response?.status === 503 || error.code === 'NETWORK_ERROR' || !error.response) && retries > 0) {
+      console.log(`Retrying in ${2 ** (maxRetries - retries)} seconds... (${retries} attempts remaining)`);
+      // Exponential backoff: 2s, 4s, 8s
+      await new Promise(resolve => setTimeout(resolve, 2000 * (2 ** (maxRetries - retries))));
       return incrementPomodoro(id, retries - 1);
     }
-    
+
     // For other errors or no retries left, return null
+    console.error("Failed to increment pomodoro count after all retries");
     return null;
   }
 };

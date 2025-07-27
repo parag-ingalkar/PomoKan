@@ -21,8 +21,8 @@ async def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm,
     return service.login_for_access_token(form_data, db)
 
 @router.post("/refresh", response_model=models.Token)
-def refresh_token_endpoint(refresh_token: str, db: DbSession):
-    return service.refresh_access_token(refresh_token, db)
+def refresh_token_endpoint(refresh_request: models.RefreshTokenRequest, db: DbSession):
+    return service.refresh_access_token(refresh_request.refresh_token, db)
 
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
 def logout(current_user: service.CurrentUser, db: DbSession):

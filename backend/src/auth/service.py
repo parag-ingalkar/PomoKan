@@ -128,13 +128,19 @@ def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm, Depen
     return models.Token(access_token=access_token, token_type='bearer', refresh_token=refresh_token)
 
 def refresh_access_token(refresh_token: str, db: Session) -> models.Token:
-    user = verify_refresh_token_db(db, refresh_token)
-    # Remove the old refresh token (single session)
-    db.query(RefreshToken).filter(RefreshToken.user_id == user.id).delete()
-    db.commit()
-    access_token = create_access_token(user.email, user.id, timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
-    new_refresh_token = create_refresh_token_db(db, user)
-    return models.Token(access_token=access_token, token_type='bearer', refresh_token=new_refresh_token)
+    try:
+        user = verify_refresh_token_db(db, refresh_token)
+        # Remove the old refresh token (single session)
+        db.query(RefreshToken).filter(RefreshToken.user_id == user.id).delete()
+        db.commit()
+        access_token = create_access_token(user.email, user.id, timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
+        new_refresh_token = create_refresh_token_db(db, user)
+        logging.info(f"Successfully refreshed token for user: {user.email}")
+        return models.Token(access_token=access_token, token_type='bearer', refresh_token=new_refresh_token)
+    except Exception as e:
+        logging.error(f"Failed to refresh access token: {str(e)}")
+        db.rollback()
+        raise
 
 def logout_user(current_user: models.TokenData, db: Session):
     user_id = current_user.get_uuid()

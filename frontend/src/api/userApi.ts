@@ -36,14 +36,33 @@ export const changePassword = async (form: {
 export const refreshAccessToken = async (): Promise<string | null> => {
   try {
     const refreshToken = localStorage.getItem('refresh_token');
-    if (!refreshToken) return null;
-    
+    if (!refreshToken) {
+      console.warn('No refresh token found in localStorage');
+      return null;
+    }
+
+    console.log('Attempting to refresh access token...');
     const response = await api.post<TokenResponse>('/auth/refresh', { refresh_token: refreshToken });
-    localStorage.setItem('token', response.data.access_token);
-    localStorage.setItem('refresh_token', response.data.refresh_token);
-    return response.data.access_token;
-  } catch (error) {
+
+    if (response.data.access_token && response.data.refresh_token) {
+      localStorage.setItem('token', response.data.access_token);
+      localStorage.setItem('refresh_token', response.data.refresh_token);
+      console.log('Successfully refreshed access token');
+      return response.data.access_token;
+    } else {
+      console.error('Invalid response from refresh endpoint');
+      return null;
+    }
+  } catch (error: any) {
     console.error('Failed to refresh token:', error);
+
+    // If it's a 401 or 403, the refresh token is invalid
+    if (error.response?.status === 401 || error.response?.status === 403) {
+      console.warn('Refresh token is invalid or expired');
+      localStorage.removeItem('token');
+      localStorage.removeItem('refresh_token');
+    }
+
     return null;
   }
 };

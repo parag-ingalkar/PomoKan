@@ -70,6 +70,20 @@ export function Pomodoro() {
 		longBreakDuration,
 	]);
 
+	// Database warming effect - warm up DB 2 minutes before timer ends
+	useEffect(() => {
+		if (!isRunning || mode !== "pomodoro" || !selectedTask) return;
+
+		// Warm up database 2 minutes before timer ends
+		if (timeLeft === 120) {
+			// 2 minutes = 120 seconds
+			console.log("Warming up database before pomodoro completion...");
+			api.get("/health/db").catch((error) => {
+				console.warn("Database warm-up failed:", error);
+			});
+		}
+	}, [isRunning, timeLeft, mode, selectedTask]);
+
 	// Timer countdown effect
 	useEffect(() => {
 		if (!isRunning) return;
