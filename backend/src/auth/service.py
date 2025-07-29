@@ -100,6 +100,19 @@ def create_refresh_token_db(db: Session, user: User) -> str:
     db.commit()
     return token
 
+def _is_token_expired(expires_at: datetime) -> bool:
+    """
+    Check if a token is expired, handling both timezone-aware and timezone-naive datetimes.
+    """
+    current_time = datetime.now(timezone.utc)
+
+    # If the stored datetime is timezone-naive, assume it's UTC
+    if expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+
+    return expires_at < current_time
+
+
 def verify_refresh_token_db(db: Session, token: str) -> User:
     """
     Verify the refresh token exists, is not expired, and return the associated user.
@@ -108,7 +121,7 @@ def verify_refresh_token_db(db: Session, token: str) -> User:
     if not refresh_token:
         from src.exceptions import RefreshTokenError
         raise RefreshTokenError()
-    if refresh_token.expires_at < datetime.now(timezone.utc):
+    if _is_token_expired(refresh_token.expires_at):
         db.delete(refresh_token)
         db.commit()
         from src.exceptions import RefreshTokenError
