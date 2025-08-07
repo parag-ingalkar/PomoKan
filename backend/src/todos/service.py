@@ -2,7 +2,6 @@ from datetime import datetime, timezone
 from uuid import UUID
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import OperationalError
-from sqlalchemy import case
 from fastapi import HTTPException
 from . import models
 from src.auth.models import TokenData
@@ -24,18 +23,11 @@ def create_todo(current_user: TokenData, todo:models.TodoCreate, db: Session) ->
         raise TodoCreationError(str(e))
     
 def get_todos(current_user: TokenData, db: Session) -> list[models.TodoResponse]:
-    status_order = case(
-        (
-            (Todo.status == "To Do", 0),
-            (Todo.status == "In Progress", 1),
-            (Todo.status == "Completed", 2),
-        ),
-        else_=3
-    )
+    
     todos = (
         db.query(Todo)
         .filter(Todo.user_id == current_user.get_uuid())
-        .order_by(status_order, Todo.created_at.desc())
+        .order_by(Todo.created_at.desc())
         .all()
     )
     logging.info(f"Retrieved {len(todos)} todos for user: {current_user.get_uuid()}")
