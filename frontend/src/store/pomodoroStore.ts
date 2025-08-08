@@ -31,7 +31,6 @@ export const usePomodoroStore = create<PomodoroState>((set, get) => ({
       set({ lastUpdatedTask: updatedTodo });
       return updatedTodo;
     } catch (err) {
-      console.warn("Failed to increment pomodoro count", err);
       return null;
     }
   },

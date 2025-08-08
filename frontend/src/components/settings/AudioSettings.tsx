@@ -56,7 +56,7 @@ export const AudioSettings = () => {
 			setPlayingAudio(audio);
 			audioElement.currentTime = 0;
 			audioElement.play().catch((error) => {
-				console.log("Audio playback failed:", error);
+				// Silently handle audio playback errors
 			});
 
 			audioElement.onended = () => {

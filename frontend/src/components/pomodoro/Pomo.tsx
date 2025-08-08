@@ -77,18 +77,14 @@ export function Pomodoro() {
 	useEffect(() => {
 		const handleVisibilityChange = () => {
 			if (!document.hidden && isRunning && timerStartTimeRef.current) {
-				console.log(
-					"System wake detected - timer will auto-correct on next update"
-				);
+				// System wake detected - timer will auto-correct on next update
 			}
 			lastActiveTimeRef.current = Date.now();
 		};
 
 		const handleFocus = () => {
 			if (isRunning && timerStartTimeRef.current) {
-				console.log(
-					"Window focus detected - timer will auto-correct on next update"
-				);
+				// Window focus detected - timer will auto-correct on next update
 			}
 			lastActiveTimeRef.current = Date.now();
 		};
@@ -118,7 +114,7 @@ export function Pomodoro() {
 				// Play audio when timer hits 0
 				if (audioRef.current) {
 					audioRef.current.play().catch((error) => {
-						console.log("Audio playback failed:", error);
+						// Silently handle audio playback errors
 					});
 				}
 
@@ -166,13 +162,7 @@ export function Pomodoro() {
 			const elapsedSeconds = MODE_TIMES[mode as Mode] - timeLeft;
 			timerStartTimeRef.current = Date.now() - elapsedSeconds * 1000;
 			lastActiveTimeRef.current = Date.now();
-			console.log(
-				`Timer started. Mode: ${mode}, Duration: ${
-					MODE_TIMES[mode as Mode]
-				}s, Remaining: ${timeLeft}s`
-			);
 		} else {
-			console.log(`Timer paused at ${timeLeft}s remaining`);
 		}
 		setIsRunning(!isRunning);
 	};

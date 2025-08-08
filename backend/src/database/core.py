@@ -4,7 +4,6 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session, declarative_base
 import os
 from dotenv import load_dotenv
-# from src.entities.user import User, RefreshToken
 
 load_dotenv()
 
@@ -21,7 +20,8 @@ engine = create_engine(DATABASE_URL,
                             "sslmode": "require",  # Ensure SSL connection to Neon
                             "connect_timeout": 10,  # Connection timeout
                             "application_name": "pomokan_backend",  # For monitoring
-                        })
+                        }
+                        )
 
 SessionLocal = sessionmaker(autocommit = False, autoflush=False, bind=engine)
 

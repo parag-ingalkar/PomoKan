@@ -105,7 +105,7 @@ def delete_todo(current_user: TokenData, db: Session, todo_id: UUID) -> None:
     db.commit()
     logging.info(f"Todo {todo_id} deleted by user {current_user.get_uuid()}")
 
-def batch_delete_todos(current_user: TokenData, db: Session, request: list[UUID]) -> None:
+def batch_delete_todos(current_user: TokenData, db: Session, request: models.BatchDeleteRequest) -> None:
     try:
         deleted_count = (
             db.query(Todo)

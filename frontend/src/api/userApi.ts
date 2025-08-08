@@ -1,7 +1,17 @@
 import { type createUser } from '@/utils/type-user';
 import api from './axios'; 
 
-
+// Utility function to check if a JWT token is expired
+export const isTokenExpired = (token: string): boolean => {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    const currentTime = Math.floor(Date.now() / 1000);
+    return payload.exp < currentTime;
+  } catch (error) {
+    console.error('Error parsing token:', error);
+    return true; // Assume expired if we can't parse it
+  }
+};
 
 export const registerUser = async (user: createUser) => {
   const response = await api.post("/auth/", user);
@@ -41,13 +51,11 @@ export const refreshAccessToken = async (): Promise<string | null> => {
       return null;
     }
 
-    console.log('Attempting to refresh access token...');
     const response = await api.post<TokenResponse>('/auth/refresh', { refresh_token: refreshToken });
 
     if (response.data.access_token && response.data.refresh_token) {
       localStorage.setItem('token', response.data.access_token);
       localStorage.setItem('refresh_token', response.data.refresh_token);
-      console.log('Successfully refreshed access token');
       return response.data.access_token;
     } else {
       console.error('Invalid response from refresh endpoint');

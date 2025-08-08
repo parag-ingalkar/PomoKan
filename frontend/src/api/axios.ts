@@ -34,6 +34,13 @@ const processQueue = (error: any, token: string | null = null) => {
   failedQueue = [];
 };
 
+// Function to update AuthProvider token state
+let updateAuthToken: ((token: string) => void) | null = null;
+
+export const setAuthTokenUpdater = (updater: (token: string) => void) => {
+  updateAuthToken = updater;
+};
+
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -66,6 +73,11 @@ api.interceptors.response.use(
               // Update the authorization header with the new token
               api.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
               originalRequest.headers['Authorization'] = `Bearer ${newToken}`;
+              
+              // Update AuthProvider token state if available
+              if (updateAuthToken) {
+                updateAuthToken(newToken);
+              }
               
               // Process the queue with the new token
               processQueue(null, newToken);

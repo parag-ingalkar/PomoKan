@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import type { Todo } from "@/utils/type-todo";
-import { getTodos, patchTodo, deleteTodo, createTodo } from "@/api/todoApi";
+import { getTodos, patchTodo, deleteTodo, createTodo, deleteMultipleTodos } from "@/api/todoApi";
 
 interface TodosState {
   todos: Todo[];
@@ -8,6 +8,7 @@ interface TodosState {
   addTodo: (todo: Omit<Todo, "id">) => Promise<void>;
   updateTodo: (todo: Todo) => Promise<void>;
   deleteTodo: (id: string) => Promise<void>;
+  deleteMultipleTodos: (ids: string[]) => Promise<void>;
 }
 
 export const useTodosStore = create<TodosState>((set, get) => ({
@@ -48,10 +49,30 @@ export const useTodosStore = create<TodosState>((set, get) => ({
     }));
     try {
       await deleteTodo(id);
-    } catch (err) {
-      // Rollback: restore previous todos
+    } catch (err: any) {
+      // If it's a 404 error, the todo doesn't exist, so we don't need to rollback
+      if (err.response?.status === 404) {
+        return;
+      }
+      // For other errors, rollback: restore previous todos
       set({ todos: prevTodos });
       console.error("Failed to delete todo", err);
+    }
+  },
+  deleteMultipleTodos: async (ids) => {
+    // Optimistic delete for multiple todos
+    const prevTodos = get().todos;
+    set((state) => ({
+      todos: state.todos.filter((t) => !ids.includes(t.id)),
+    }));
+    try {
+      await deleteMultipleTodos(ids);
+    } catch (err: any) {
+      // For batch operations, we'll rollback on any error to be safe
+      // The server should handle partial failures appropriately
+      set({ todos: prevTodos });
+      console.error("Failed to delete multiple todos", err);
+      throw err; // Re-throw to let the UI handle the error
     }
   },
 })); 

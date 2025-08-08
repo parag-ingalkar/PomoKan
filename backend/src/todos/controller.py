@@ -44,8 +44,6 @@ def increment_pomodoro_count(db: DbSession, todo_id: UUID, current_user: Current
 def delete_todo(db: DbSession, todo_id: UUID, current_user: CurrentUser):
     service.delete_todo(current_user, db, todo_id)
 
-
-
 @router.patch("/{todo_id}", response_model=models.TodoResponse)
 def patch_todo(db: DbSession, todo_id: UUID, todo_update: models.TodoUpdate, current_user: CurrentUser):
     return service.patch_todo(current_user, db, todo_id, todo_update)

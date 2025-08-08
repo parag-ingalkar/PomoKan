@@ -100,6 +100,7 @@ export const AddCard = ({ area }: Omit<AddCardProps, "setCards">) => {
 
 		try {
 			await addTodo(payload);
+			setText("");
 			setAdding(false);
 		} catch (err) {
 			console.error("Failed to create task:", err);

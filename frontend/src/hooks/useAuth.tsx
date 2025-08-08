@@ -1,7 +1,7 @@
 import { useState, useEffect, createContext, useContext, useCallback } from "react";
 import type { ReactNode } from "react";
-import api from "../api/axios";
-import { loginUser, logout as logoutUser, refreshAccessToken } from "@/api/userApi";
+import api, { setAuthTokenUpdater } from "../api/axios";
+import { loginUser, logout as logoutUser, refreshAccessToken, isTokenExpired } from "@/api/userApi";
 import type { User } from "@/utils/type-user";
 
 interface AuthContextType {
@@ -10,6 +10,7 @@ interface AuthContextType {
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  updateToken: (newToken: string) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -25,6 +26,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
   );
   const [isLoading, setIsLoading] = useState(true);
 
+  const updateToken = useCallback((newToken: string) => {
+    setToken(newToken);
+    localStorage.setItem("token", newToken);
+  }, []);
+
+  // Register the token updater with axios interceptor
+  useEffect(() => {
+    setAuthTokenUpdater(updateToken);
+  }, [updateToken]);
+
   const loadUser = useCallback(async () => {
     if (!token) {
       setUser(null);
@@ -32,18 +43,78 @@ export function AuthProvider({ children }: AuthProviderProps) {
       return;
     }
 
+    // Check if token is expired before making the request
+    if (isTokenExpired(token)) {
+      const refreshToken = localStorage.getItem('refresh_token');
+      if (refreshToken) {
+        try {
+          const newToken = await refreshAccessToken();
+          if (newToken) {
+            updateToken(newToken);
+            // Continue with loading user
+          } else {
+            // Refresh failed, clear everything
+            setUser(null);
+            setToken(null);
+            localStorage.removeItem('token');
+            localStorage.removeItem('refresh_token');
+            setIsLoading(false);
+            return;
+          }
+        } catch (refreshError) {
+          console.error('Failed to refresh token:', refreshError);
+          setUser(null);
+          setToken(null);
+          localStorage.removeItem('token');
+          localStorage.removeItem('refresh_token');
+          setIsLoading(false);
+          return;
+        }
+      } else {
+        // No refresh token, clear everything
+        setUser(null);
+        setToken(null);
+        localStorage.removeItem('token');
+        setIsLoading(false);
+        return;
+      }
+    }
+
     try {
       const res = await api.get("/users/me");
       setUser(res.data);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to load user:', error);
+      
+      // If it's a 401 error, try to refresh the token
+      if (error.response?.status === 401) {
+        const refreshToken = localStorage.getItem('refresh_token');
+        if (refreshToken) {
+          try {
+            const newToken = await refreshAccessToken();
+            if (newToken) {
+              updateToken(newToken);
+              // Retry loading user with new token
+              const res = await api.get("/users/me");
+              setUser(res.data);
+              setIsLoading(false);
+              return;
+            }
+          } catch (refreshError) {
+            console.error('Failed to refresh token:', refreshError);
+          }
+        }
+      }
+      
+      // If refresh failed or no refresh token, clear everything
       setUser(null);
+      setToken(null);
       localStorage.removeItem('token');
       localStorage.removeItem('refresh_token');
     } finally {
       setIsLoading(false);
     }
-  }, [token]);
+  }, [token, updateToken]);
 
   useEffect(() => {
     loadUser();
@@ -72,12 +143,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
     } finally {
       setToken(null);
       setUser(null);
+      localStorage.removeItem('token');
+      localStorage.removeItem('refresh_token');
       setIsLoading(false);
     }
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, isLoading, login, logout }}>
+    <AuthContext.Provider value={{ user, token, isLoading, login, logout, updateToken }}>
       {children}
     </AuthContext.Provider>
   );

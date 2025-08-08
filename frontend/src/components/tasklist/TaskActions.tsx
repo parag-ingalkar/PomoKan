@@ -17,8 +17,8 @@ import type { Table } from "@tanstack/react-table";
 import { type Todo } from "@/utils/type-todo";
 import { AddTaskDialog } from "./AddTaskDialog";
 import { useState } from "react";
-import { deleteMultipleTodos } from "@/api/todoApi";
 import { useTodosStore } from "@/store/todosStore";
+import { toast } from "sonner";
 
 type Props = {
 	table: Table<Todo>;
@@ -26,15 +26,20 @@ type Props = {
 
 export function TaskActions({ table }: Props) {
 	const [showAddTask, setShowAddTask] = useState(false);
+	const deleteMultipleTodos = useTodosStore((state) => state.deleteMultipleTodos);
 
 	const selectedRows = table.getSelectedRowModel().rows;
 
 	const handleDelete = async () => {
-		const todoIds = selectedRows.map((row) => row.original.id);
-		await deleteMultipleTodos(todoIds);
-		// Remove from global store
-		todoIds.forEach((id) => useTodosStore.getState().deleteTodo(id));
-		table.resetRowSelection();
+		try {
+			const todoIds = selectedRows.map((row) => row.original.id);
+			await deleteMultipleTodos(todoIds);
+			table.resetRowSelection();
+			toast.success(`Successfully deleted ${todoIds.length} task${todoIds.length === 1 ? '' : 's'}`);
+		} catch (error) {
+			console.error('Failed to delete todos:', error);
+			toast.error('Failed to delete some tasks. Please try again.');
+		}
 	};
 
 	return (

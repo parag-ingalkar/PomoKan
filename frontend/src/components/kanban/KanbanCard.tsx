@@ -107,7 +107,6 @@ export const AddCard = ({ column }: Omit<AddCardProps, "setCards">) => {
 		};
 
 		try {
-			console.log("payload", payload);
 			await addTodo(payload);
 			setText(""); // Clear input after successful creation
 			setAdding(false);
