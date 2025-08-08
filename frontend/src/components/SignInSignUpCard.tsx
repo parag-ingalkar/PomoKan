@@ -15,7 +15,7 @@ import { useAuth } from "@/hooks/useAuth";
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "sonner";
-import { AxiosError } from "axios";
+import { motion } from "framer-motion"
 
 export const SignInSignUpCard = () => {
 	const { login } = useAuth();
@@ -57,7 +57,7 @@ export const SignInSignUpCard = () => {
 				navigate("/dashboard");
 			} catch (err) {
 				toast.error("Login failed. Try again.");
-			  
+
 			} finally {
 				setLoading(false);
 			}
@@ -80,7 +80,7 @@ export const SignInSignUpCard = () => {
 	};
 
 	return (
-		<Card className="w-full max-w-sm">
+		<Card className="w-full max-w-sm bg-zinc-800/20">
 			<CardHeader>
 				<CardTitle>
 					{isSignIn ? "Login to your Account" : "Create a new Account"}
@@ -144,7 +144,7 @@ export const SignInSignUpCard = () => {
 							/>
 						</div>
 					</div>
-					
+
 				</CardContent>
 				<CardFooter className="mt-6">
 					<Button type="submit" className="w-full" disabled={loading}>
